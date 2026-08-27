@@ -1,145 +1,148 @@
-# 特别热闹的练枪软件（MemeAim）
+# MemeAim (特别热闹的练枪软件)
 
-**MemeAim** 是一款类 AimLab 的 **2D 平面练枪软件**，帮助你提升 FPS 瞄准精度与手速。以「打小球」为核心，支持多种训练模式、灵敏度调节、准星自定义、音效管理与成绩统计，内置大量 meme 音效。
-
----
-
-## ✨ 功能特性
-
-- **3 种训练模式**：定点速点、追踪移动靶、闪现甩枪
-- **限时挑战**：默认 60 秒，结算显示总分 / 命中率 / 最大连击 / 最佳成绩
-- **完整参数面板**：时长、小球大小、数量、速度、停留时长、灵敏度、分辨率、全屏均可调
-- **准星自定义**：样式（十字 / 圆点 / 圆圈）、颜色、大小、粗细、缺口
-- **音效系统**：命中 / 未命中音效随机播放，可逐个试听、启用或禁用；结算音效按分数播放；支持背景音乐
-- **视觉特效**：命中粒子爆炸、浮动文字、连击提示、准星反馈、渐变网格背景、动态菜单
-- **成绩本地保存**：各模式最佳成绩与全部设置持久化到本地文件
+**MemeAim** is an AimLab-style **2D aim trainer** that helps you improve your FPS accuracy and speed. Built around shooting small balls, it offers multiple training modes, sensitivity adjustment, crosshair customization, sound management, and score tracking — packed with meme sound effects.
 
 ---
 
-## 🚀 快速开始
+## ✨ Features
 
-### 方式一：直接运行打包好的程序（推荐）
+- **3 training modes**: Gridshot, Tracking, Flick
+- **Timed challenge**: 60 seconds by default, with a results screen showing score / accuracy / best combo / best score
+- **Full parameter panel**: duration, ball size, target count, speed, lifetime, sensitivity, resolution, fullscreen
+- **Crosshair customization**: style (cross / dot / circle), color, size, thickness, gap
+- **Sound system**: hit / miss sounds play randomly, individually previewable, enable/disable per sound; result sounds play by score; background music support
+- **Visual effects**: hit particle bursts, floating text, combo popups, crosshair feedback, gradient grid background, animated menu
+- **Local score saving**: best scores and all settings persisted to a local file
+- **Bilingual UI**: Chinese / English toggle
 
-进入 `dist/` 目录，双击 `MemeAim.exe` 即可。**无需安装 Python 或任何依赖**，可在任意 Windows 电脑上运行。
+---
 
-> 首次运行后，会在 exe 同目录下自动生成 `save_data.json` 保存成绩与设置。
+## 🚀 Getting Started
 
-### 方式二：从源码运行
+### Option 1: Run the packaged build (recommended)
 
-需要先安装 [Python 3.12](https://www.python.org/) 和 pygame：
+Open `dist/` and double-click `MemeAim.exe`. **No Python or dependencies required** — runs on any Windows machine.
+
+> On first run, `save_data.json` is created next to the exe to store scores and settings.
+
+### Option 2: Run from source
+
+Requires [Python 3.12](https://www.python.org/) and pygame:
 
 ```bash
 pip install pygame
 python main.py
 ```
 
-也可以直接双击项目根目录的 `运行游戏.bat`（会自动优先启动已打包的 exe，否则运行源码）。
+You can also double-click `运行游戏.bat` in the project root (it prefers the packaged exe, otherwise runs from source).
 
 ---
 
-## 🎮 操作说明
+## 🎮 Controls
 
-| 操作 | 说明 |
-|------|------|
-| 移动鼠标 | 移动准星 |
-| 鼠标左键 | 射击 |
-| `F11` | 全屏 / 窗口切换 |
-| `Esc` | 返回上一层 / 退出（游戏中为中断并结算） |
-| 鼠标滚轮 | 在音效管理列表中滚动 |
+| Action | Description |
+|--------|-------------|
+| Move mouse | Move crosshair |
+| Left click | Shoot |
+| `F11` | Toggle fullscreen / windowed |
+| `Esc` | Go back / exit (in-game: abort and show results) |
+| Mouse wheel | Scroll in sound manager lists |
 
-> 进入训练时鼠标会被锁定并隐藏（相对移动模式），按 `Esc` 中断或一局结束后自动释放。
-
----
-
-## 🎯 游戏模式
-
-| 模式 | 说明 | 计分要点 |
-|------|------|----------|
-| **定点速点** | 小球在随机位置出现，快速移动准星逐个击破，练手速与定位 | 命中 +1，打空 -1（最低 0 分） |
-| **追踪移动靶** | 小球持续移动并反弹，需跟踪瞄准，练跟枪手感 | 命中 +1，打空 -1 |
-| **闪现甩枪** | 小球随机闪现、停留后消失，练反应与甩枪精度 | 命中 +1，打空 -1；漏球不扣分，仅计数 |
-
-**结算音效规则**：一局结束时，得分 **低于 60** 播放 `l.mp3`，**60 及以上** 播放 `w.mp3`（可替换）。
+> During training the mouse is grabbed and hidden (relative-motion mode); it is released when you press `Esc` or finish a session.
 
 ---
 
-## ⚙️ 设置说明
+## 🎯 Game Modes
 
-所有设置在主菜单的 **参数设置** 中调整，修改即时保存：
+| Mode | Description | Scoring |
+|------|-------------|---------|
+| **Gridshot** | Balls appear at random positions; snap between them to build speed and precision | Hit +1, miss -1 (floor 0) |
+| **Tracking** | Balls move and bounce continuously; track them to train your aim | Hit +1, miss -1 |
+| **Flick** | Balls flash in, stay briefly, then vanish; trains reaction and flick accuracy | Hit +1, miss -1; a despawned ball doesn't deduct score, only counts |
 
-| 设置项 | 范围 | 默认 | 说明 |
-|--------|------|------|------|
-| 每局时长 | 10 ~ 180 秒 | 60 | 一局训练的时间 |
-| 小球半径 | 6 ~ 40 像素 | 15 | 小球大小（基准 1280×720） |
-| 同时小球数量 | 1 ~ 10 | 3 | 速点 / 追踪模式同时存在的小球数 |
-| 移动速度 | 50 ~ 600 px/s | 240 | 追踪模式小球移动速度 |
-| 闪现停留时长 | 0.2 ~ 3.0 秒 | 1.0 | 闪现模式小球停留时长 |
-| 鼠标灵敏度 | 0.2 ~ 3.0 | 1.0 | 游戏内灵敏度倍率 |
-| 分辨率 | 4 档 | 1280×720 | 1280×720 / 1600×900 / 1920×1080 / 2560×1440 |
-| 全屏 | 开 / 关 | 关 | 全屏时使用桌面原生分辨率 |
-
-> **关于灵敏度（eDPI）**：软件无法读取鼠标的物理 DPI，这里提供的是「游戏内灵敏度倍率」。实际手感 = 你的鼠标 DPI × 此倍率。默认 1.0 为原始手感，调到 0.2～3.0 之间找到适合自己的值。
-
-**准星设置**（主菜单 → 准星设置）：样式、颜色、大小、粗细、缺口均可调，即时预览。
+**Result sound rule**: when a session ends, a score **below 60** plays `l.mp3`, and **60 or above** plays `w.mp3` (replaceable).
 
 ---
 
-## 🔊 音效自定义
+## ⚙️ Settings
 
-音效文件位于 `sounds/` 目录，支持 `.mp3` / `.wav` / `.ogg` 格式：
+All settings are under **Settings** in the main menu and save instantly:
+
+| Setting | Range | Default | Description |
+|---------|-------|---------|-------------|
+| Duration | 10 ~ 180 s | 60 | Length of a session |
+| Ball radius | 6 ~ 40 px | 15 | Ball size (based on 1280×720) |
+| Targets at once | 1 ~ 10 | 3 | Simultaneous balls in Gridshot / Tracking |
+| Move speed | 50 ~ 600 px/s | 240 | Ball speed in Tracking |
+| Flick lifetime | 0.2 ~ 3.0 s | 1.0 | How long a Flick ball stays |
+| Mouse sensitivity | 0.2 ~ 3.0 | 1.0 | In-game sensitivity multiplier |
+| Resolution | 4 presets | 1280×720 | 1280×720 / 1600×900 / 1920×1080 / 2560×1440 |
+| Fullscreen | On / Off | Off | Uses native desktop resolution in fullscreen |
+| Language | 中文 / English | 中文 | UI language |
+
+> **About sensitivity (eDPI)**: the software cannot read your mouse's physical DPI, so this is an in-game sensitivity multiplier. Effective feel = your mouse DPI × this multiplier. The default 1.0 is the raw feel; tune between 0.2 and 3.0 to find what suits you.
+
+**Crosshair settings** (main menu → Crosshair): style, color, size, thickness, and gap are all adjustable with live preview.
+
+---
+
+## 🔊 Sound Customization
+
+Sound files live in the `sounds/` directory and support `.mp3` / `.wav` / `.ogg`:
 
 ```
 sounds/
-├── hit/          # 命中音效（可多个，命中时随机播放）
-├── miss/         # 未命中音效（可多个，未命中时随机播放）
-├── l.mp3         # 结算音效：得分 < 60
-├── w.mp3         # 结算音效：得分 ≥ 60
-└── bgm.ogg       # 背景音乐（可选，自动循环）
+├── hit/          # Hit sounds (multiple, played randomly on hit)
+├── miss/         # Miss sounds (multiple, played randomly on miss)
+├── l.mp3         # Result sound: score < 60
+├── w.mp3         # Result sound: score ≥ 60
+└── bgm.ogg       # Background music (optional, loops automatically)
 ```
 
-- 命中 / 未命中音效可在游戏内 **命中音效 / 未命中音效** 菜单中逐个试听、启用或禁用。
-- 启停状态会保存，下次启动保持。
-- 缺失的音效文件会被静默跳过，不影响运行。
+- Hit / miss sounds can be previewed, enabled, or disabled individually in the in-game **Hit Sounds / Miss Sounds** menus.
+- Toggle states are saved and persist across launches.
+- Missing sound files are silently skipped and won't break anything.
 
 ---
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 aim_trainer/
-├── main.py           # 程序入口：状态机、游戏循环、菜单、结算
-├── targets.py        # 小球类与三种模式的生成 / 移动 / 命中逻辑
-├── ui.py             # UI 组件：按钮、滑块、渐变文字、准星绘制
-├── audio.py          # 音效加载与播放、启停管理
-├── effects.py        # 视觉特效：粒子、浮动文字
-├── settings.py       # 配置与成绩的读取 / 保存
-├── sounds/           # 音效资源目录
+├── main.py           # Entry point: state machine, game loop, menus, results
+├── targets.py        # Ball class and generation/movement/hit logic for 3 modes
+├── ui.py             # UI components: buttons, sliders, gradient text, crosshair
+├── audio.py          # Sound loading, playback, and toggle management
+├── effects.py        # Visual effects: particles, floating text
+├── settings.py       # Config and score persistence
+├── i18n.py           # Chinese / English UI strings
+├── sounds/           # Sound asset directory
 ├── dist/
-│   └── MemeAim.exe      # 打包好的独立可执行程序
-├── MemeAim.spec         # PyInstaller 打包配置
-├── 运行游戏.bat       # 一键启动脚本
-├── _smoke_test.py    # 无界面冒烟测试脚本
-└── save_data.json    # 运行时自动生成的成绩与设置文件
+│   └── MemeAim.exe   # Packaged standalone executable
+├── MemeAim.spec      # PyInstaller build config
+├── 运行游戏.bat       # One-click launcher
+├── _smoke_test.py    # Headless smoke test script
+└── save_data.json    # Auto-generated scores and settings at runtime
 ```
 
 ---
 
-## 🔧 打包为 exe
+## 🔧 Building the exe
 
-如需修改代码后重新打包：
+To rebuild after modifying the code:
 
 ```bash
 pip install pyinstaller
 pyinstaller --noconfirm --onefile --noconsole --name MemeAim --add-data "sounds;sounds" main.py
 ```
 
-产物输出到 `dist/MemeAim.exe`。
+The output goes to `dist/MemeAim.exe`.
 
 ---
 
-## 🧪 运行测试
+## 🧪 Running Tests
 
-项目自带无界面冒烟测试，可快速验证核心逻辑（需先安装 pygame）：
+The project includes a headless smoke test to quickly verify core logic (requires pygame):
 
 ```bash
 python _smoke_test.py
@@ -147,24 +150,24 @@ python _smoke_test.py
 
 ---
 
-## ❓ 常见问题
+## ❓ FAQ
 
-**Q：为什么双击 exe 时杀毒软件报「未知程序」？**
-A：exe 未做数字签名，属正常现象，选择「仍要运行」即可。
+**Q: Why does my antivirus flag the exe as "unknown program"?**
+A: The exe isn't code-signed, which is normal. Choose "Run anyway".
 
-**Q：成绩和设置保存在哪里？**
-A：保存在 exe 同目录下的 `save_data.json` 文件中。
+**Q: Where are scores and settings stored?**
+A: In `save_data.json`, next to the exe.
 
-**Q：如何替换 / 增加音效？**
-A：把音效文件放进 `sounds/hit/`（命中）或 `sounds/miss/`（未命中）即可，重新打开游戏后自动识别。若已打包为 exe，也可以在 exe 同目录新建 `sounds/` 文件夹放置音效，无需重新打包。
+**Q: How do I replace or add sounds?**
+A: Drop sound files into `sounds/hit/` (hit) or `sounds/miss/` (miss); the game picks them up on next launch. For a packaged build, you can also create a `sounds/` folder next to the exe to add sounds without rebuilding.
 
-**Q：想还原默认设置怎么办？**
-A：关闭程序后删除 exe 同目录下的 `save_data.json`，下次启动会重建默认配置。
+**Q: How do I reset to default settings?**
+A: Close the app, delete `save_data.json` next to the exe, and relaunch.
 
 ---
 
-## 🛠️ 技术栈
+## 🛠️ Tech Stack
 
 - **Python 3.12**
-- **pygame 2.6**（渲染、输入、音频）
-- **PyInstaller**（打包为独立 exe）
+- **pygame 2.6** (rendering, input, audio)
+- **PyInstaller** (packaging as a standalone exe)
