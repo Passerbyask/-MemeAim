@@ -1,0 +1,31 @@
+{
+  "settings": {
+    "session_duration": 60,
+    "ball_radius": 10,
+    "max_targets": 6,
+    "target_speed": 240,
+    "target_lifetime": 1.0,
+    "resolution": "1280x720",
+    "fullscreen": false,
+    "sensitivity": 1.0,
+    "lang": "zh"
+  },
+  "crosshair": {
+    "style": "cross",
+    "color": [
+      0,
+      255,
+      120
+    ],
+    "size": 10,
+    "thickness": 1,
+    "gap": 3
+  },
+  "best": {},
+  "hit_enabled": {
+    "anime-wow-sound-effect.mp3": true
+  },
+  "miss_enabled": {
+    "actually-good-fahhhh-sfx.mp3": true
+  }
+}

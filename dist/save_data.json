@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "session_duration": 60,
+    "ball_radius": 15,
+    "max_targets": 3,
+    "target_speed": 240,
+    "target_lifetime": 1.0,
+    "resolution": "1280x720",
+    "fullscreen": false
+  },
+  "crosshair": {
+    "style": "cross",
+    "color": [
+      0,
+      255,
+      120
+    ],
+    "size": 14,
+    "thickness": 2,
+    "gap": 5
+  },
+  "best": {
+    "gridshot": 95
+  },
+  "hit_enabled": {},
+  "miss_enabled": {}
+}
