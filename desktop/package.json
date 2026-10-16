@@ -1,6 +1,6 @@
 {
   "name": "memeaim-desktop",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "MemeAim 3D offline aim trainer with meme reactions",
   "author": "MemeAim contributors",
@@ -8,7 +8,7 @@
   "scripts": {
     "build:web": "npm --prefix ../web run build",
     "start": "npm run build:web && electron .",
-    "test": "node --test asset-server.test.cjs",
+    "test": "node --test --test-isolation=none asset-server.test.cjs dsu.test.cjs",
     "pack": "npm run build:web && electron-builder --win --x64 --dir",
     "dist": "npm run build:web && electron-builder --win --x64 --publish never",
     "smoke": "node run-smoke.cjs"
@@ -27,7 +27,9 @@
       "main.cjs",
       "asset-server.cjs",
       "smoke.cjs",
-      "icon.ico"
+      "icon.ico",
+      "dsu.cjs",
+      "preload.cjs"
     ],
     "extraResources": [
       {

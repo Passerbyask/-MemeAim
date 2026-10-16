@@ -60,6 +60,10 @@ npm run build
 
 自行部署时，将 `web/dist/` 内的文件复制到站点目录，使 `index.html` 位于访问路径的首页位置，并保持 `vendor/`、`sounds/`、`effects/` 等目录结构。建议启用 HTTPS；服务器须正确提供 `.js` / `.mjs` 的 JavaScript 类型及 `.mp4` 的 `video/mp4` 类型。
 
+### 手柄与体感
+
+新增「手柄测试」页，可测摇杆原始值、死区输出、中心漂移、外圈范围、按键、扳机和短震动。支持 DualSense / Edge 的 WebHID 体感读取与静止校准；Xbox 标准输入没有陀螺仪数据。飞智等型号可在驱动提供真实 DSU 运动输出时通过 Windows 版接入，具体取决于型号和模式。使用和限制见 **[web/README.md](web/README.md)**，开发协议见 **[web/MOTION.md](web/MOTION.md)**。
+
 ### 5. 更新与检查
 
 修改源码、音效或视频后，重新运行 `npm run build`，再用新的 `web/dist/` 更新站点。若托管平台配置了自动构建，推送代码后由平台重新构建发布。

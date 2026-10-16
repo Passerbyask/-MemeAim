@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<aside class="rail"><a class="brand-icon" href="./" aria-label="MemeAim 首页">◎</a><div class="rail-line"></div><button class="rail-item active" data-tab="training" aria-label="训练场">⌖</button><button class="rail-item" data-tab="records" aria-label="训练记录">▥</button><button class="rail-item" data-tab="sound" aria-label="音效管理">♫</button><div class="rail-bottom">3D<span class="online-dot"></span></div></aside>
+<aside class="rail"><a class="brand-icon" href="./" aria-label="MemeAim 首页">◎</a><div class="rail-line"></div><button class="rail-item active" data-tab="training" aria-label="训练场">⌖</button><button class="rail-item" data-tab="records" aria-label="训练记录">▥</button><button class="rail-item" data-tab="sound" aria-label="音效管理">♫</button><button class="rail-item" data-tab="controller" aria-label="手柄测试">⊕</button><div class="rail-bottom">3D<span class="online-dot"></span></div></aside>
 <div class="workspace">
-  <header><a href="./" class="wordmark">MEME<span>AIM</span><sup>3D</sup></a><nav><button data-tab="training" class="nav-tab active">训练场</button><button data-tab="records" class="nav-tab">训练记录</button><button data-tab="sound" class="nav-tab">音效管理</button></nav><span class="local-badge"><i></i> 浏览器训练 · 本地成绩</span></header>
+  <header><a href="./" class="wordmark">MEME<span>AIM</span><sup>3D</sup></a><nav><button data-tab="training" class="nav-tab active">训练场</button><button data-tab="records" class="nav-tab">训练记录</button><button data-tab="sound" class="nav-tab">音效管理</button><button data-tab="controller" class="nav-tab">手柄测试</button></nav><span class="local-badge"><i></i> 浏览器训练 · 本地成绩</span></header>
   <main>
     <section id="training-panel" class="page-panel">
       <div class="page-heading"><div><div class="eyebrow">YOUR DAILY AIM ROUTINE</div><h1>练到手感在线<span>。</span></h1><p>准一点，快一点。还有亿点点梗。</p></div><div class="session-label"><span>训练场 / 01</span><strong>THE GRID ROOM <span>↗</span></strong></div></div>
@@ -62,6 +62,24 @@
     </section>
     <section id="records-panel" class="page-panel" hidden><div class="page-heading"><div><div class="eyebrow">MAKE EVERY SESSION COUNT</div><h1>看见你的进步<span>。</span></h1><p>最近 50 次训练，仅保存在当前浏览器。最佳成绩按模式和配置分别计算。</p></div></div><div id="records-content"></div></section>
     <section id="sound-panel" class="page-panel" hidden><div class="page-heading"><div><div class="eyebrow">A LITTLE LESS SERIOUS</div><h1>每一枪都有梗<span>。</span></h1><p>来自原项目的音效。选择喜欢的声音，训练时随机播放。</p></div></div><div class="volume-row"><label for="volume">音效音量</label><input id="volume" type="range" min="0" max="1" step="0.05"><output id="volume-out"></output></div><div id="sound-content" class="sound-content"></div></section>
+    <section id="controller-panel" class="page-panel" hidden>
+      <div class="page-heading"><div><div class="eyebrow">CONTROLLER LAB</div><h1>找到你的手感<span>。</span></h1><p>松开测漂移，沿边转一圈测范围。橙点是原始输入，绿点是死区处理后的输出。</p></div></div>
+      <div class="lab-toolbar"><label for="lab-device">测试设备</label><select id="lab-device" aria-label="选择测试手柄"></select><span id="lab-status" role="status">等待手柄</span></div>
+      <div class="lab-grid">
+        <section class="lab-card"><h2>左摇杆</h2><canvas id="lab-stick-0" width="300" height="300" aria-label="左摇杆原始位置和死区输出"></canvas></section>
+        <section class="lab-card"><h2>右摇杆</h2><canvas id="lab-stick-1" width="300" height="300" aria-label="右摇杆原始位置和死区输出"></canvas></section>
+        <section class="lab-card lab-readings"><h2>输入与死区</h2><p id="lab-values" class="lab-numbers">等待输入</p><label for="lab-deadzone">训练死区 <output id="lab-deadzone-value"></output></label><input id="lab-deadzone" type="range" min="0.05" max="0.35" step="0.01"><p id="lab-drift">点击测中心漂移后松开摇杆两秒。</p><div class="lab-actions"><button id="lab-center">测中心漂移</button><button id="lab-apply" disabled>采用建议死区</button><button id="lab-reset">清空轨迹</button></div><p class="lab-note">死区应用到训练的右摇杆。外圈轨迹为采样覆盖，不是硬件合格判定。</p></section>
+        <section class="lab-card"><h2>扳机与震动</h2><div class="lab-trigger"><label for="lab-lt">LT / L2</label><meter id="lab-lt" min="0" max="1" value="0"></meter><output id="lab-lt-value">0.000</output></div><div class="lab-trigger"><label for="lab-rt">RT / R2</label><meter id="lab-rt" min="0" max="1" value="0"></meter><output id="lab-rt-value">0.000</output></div><button id="lab-rumble">测试震动 · 短震</button><p class="lab-note">震动由手柄、系统和连接模式共同决定。这里只测试一次，不改变训练震动开关。</p></section>
+        <section class="lab-card lab-wide"><h2>按键监视</h2><div id="lab-buttons" class="lab-buttons"></div><p class="lab-note">编号使用浏览器返回的按键顺序；非标准布局也可在这里观察原始输入。</p></section>
+      </div>
+      <section class="lab-card gyro-card"><div class="settings-heading"><h2>陀螺仪与体感瞄准</h2><strong id="gyro-source">未连接</strong></div><p class="lab-note">DualSense 可通过直连接口读取。Xbox 标准输入不提供运动数据；飞智等其他型号需由支持的驱动输出 DSU 运动数据，再通过桌面版接入。</p>
+        <div class="lab-actions"><button id="gyro-hid">连接 DualSense 陀螺仪</button><button id="gyro-disconnect">断开运动来源</button><button id="gyro-calibrate">静止校准 · 两秒</button></div>
+        <p id="gyro-status" class="gyro-status" role="status">未连接陀螺仪</p><p id="gyro-values" class="lab-numbers">X — · Y — · Z — °/s</p>
+        <div class="gyro-controls"><label class="gyro-toggle"><input id="gyro-enabled" type="checkbox"> 开启体感瞄准</label><label for="gyro-sensitivity">体感灵敏度 <output id="gyro-sensitivity-value"></output><input id="gyro-sensitivity" type="range" min="0.1" max="5" step="0.1"></label><label for="gyro-activation">启用方式<select id="gyro-activation"><option value="precision">按住 LT / L2</option><option value="always">训练中始终启用</option></select></label><label for="gyro-yaw-axis">水平旋转轴<select id="gyro-yaw-axis"><option value="y">Y 轴 · 竖直握持</option><option value="z">Z 轴 · 平放握持</option></select></label><label><input id="gyro-invert-x" type="checkbox"> 水平反转</label><label><input id="gyro-invert-y" type="checkbox"> 垂直反转</label></div>
+        <details class="dsu-settings"><summary>其他手柄：连接本机 DSU 运动服务（Windows 版）</summary><p>需要已有软件把手柄真实陀螺仪数据输出为 DSU。服务固定连接本机 127.0.0.1；此功能不会给没有传感器的手柄增加陀螺仪。</p><div class="lab-toolbar"><label for="dsu-port">服务端口</label><input id="dsu-port" type="number" min="1024" max="65535" value="26760"><label for="dsu-slot">手柄槽位</label><select id="dsu-slot"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select><button id="gyro-dsu">连接 DSU</button></div></details>
+        <p class="lab-note">首次连接请放稳校准，再开启体感瞄准。角速度仅在收到真实运动数据时显示；校准中或数据中断时不会移动视角。训练仍使用手柄瞄准方式，可与右摇杆同时使用。</p>
+      </section>
+    </section>
   </main>
   <footer><span>MEMEAIM <b>3D</b> <i>/</i> 小练一下，大有手感。</span><a href="https://github.com/Passerbyask/-MemeAim" target="_blank" rel="noopener noreferrer">基于 Passerbyask / MemeAim ↗</a></footer>
 </div>

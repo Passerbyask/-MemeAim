@@ -3,6 +3,8 @@ import {defaults,modes,sanitizeSettings,configKey,Session} from './core.mjs';
 import {HeldWeapon} from './weapon.js';
 import {MemeEffects,MixedScreenEffects} from './meme-effects.mjs';
 import {GamepadInput,stickVector,lookDelta} from './gamepad.mjs';
+import {ControllerLab} from './controller-lab.mjs';
+import {GyroState,GyroConnection} from './gyro.mjs';
 
 const $=id=>document.getElementById(id);
 const STORAGE='memeaim-3d-v1';
@@ -19,6 +21,9 @@ let weapon;
 const memes=new MemeEffects($('arena'),toast);
 const screenEffects=new MixedScreenEffects($('arena'));
 const gamepadInput=new GamepadInput();
+const gyroState=new GyroState(),gyroConnection=new GyroConnection(gyroState);
+const lab=new ControllerLab($('controller-panel'),{settings:()=>settings,onDeadzone:value=>{settings.gamepadDeadzone=value;settingChanged();},toast});
+let lastGyroPaint=-Infinity;
 let gamepadState={connected:false},gamepadMessage='',overlayIndex=0;
 let activeSynth=[];
 let inputMode=settings.control,playBounds={x:5.2,y:2.45},cursorPoint=new THREE.Vector2();
@@ -31,6 +36,9 @@ function syncSettings(){
   for(const key of ['control','crosshair'])$(key).value=settings[key];
   $('duration-out').textContent=settings.duration+' s';$('sensitivity-out').textContent=settings.sensitivity.toFixed(1)+'×';
   $('gamepadSensitivity-out').textContent=settings.gamepadSensitivity.toFixed(1)+'×';$('gamepadDeadzone-out').textContent=Math.round(settings.gamepadDeadzone*100)+'%';
+  $('lab-deadzone').value=settings.gamepadDeadzone;$('lab-deadzone-value').textContent=Math.round(settings.gamepadDeadzone*100)+'%';
+  $('gyro-enabled').checked=settings.gyroEnabled;$('gyro-sensitivity').value=settings.gyroSensitivity;$('gyro-sensitivity-value').textContent=settings.gyroSensitivity.toFixed(1)+'×';
+  $('gyro-activation').value=settings.gyroActivation;$('gyro-yaw-axis').value=settings.gyroYawAxis;$('gyro-invert-x').checked=settings.gyroInvertX;$('gyro-invert-y').checked=settings.gyroInvertY;
   $('gamepad-options').hidden=settings.control!=='gamepad';$('gamepadVibration').checked=settings.gamepadVibration;
   $('radius-out').textContent=Math.round(settings.radius*100)+' cm';$('count-out').textContent=mode==='flick'?'1 个':settings.count+' 个';
   $('speed-out').textContent=settings.speed.toFixed(2)+' m/s';$('lifetime-out').textContent=settings.lifetime.toFixed(1)+' s';$('volume-out').textContent=Math.round(settings.volume*100)+'%';
@@ -46,6 +54,20 @@ function settingChanged(){persist();syncSettings();if(state==='preview'&&scene)p
 for(const key of numericFields)$(key).addEventListener('input',e=>{settings[key]=Number(e.target.value);settingChanged();});
 for(const key of ['control','crosshair'])$(key).addEventListener('change',e=>{settings[key]=e.target.value;settingChanged();});
 $('sound-enabled').addEventListener('change',e=>{settings.sound=e.target.checked;settingChanged();if(!settings.sound)stopAudio();});
+$('lab-deadzone').addEventListener('input',e=>{settings.gamepadDeadzone=Number(e.target.value);settingChanged();});
+for(const [id,key] of [['gyro-enabled','gyroEnabled'],['gyro-invert-x','gyroInvertX'],['gyro-invert-y','gyroInvertY']])$(id).addEventListener('change',e=>{settings[key]=e.target.checked;settingChanged();});
+for(const [id,key] of [['gyro-activation','gyroActivation'],['gyro-yaw-axis','gyroYawAxis']])$(id).addEventListener('change',e=>{settings[key]=e.target.value;settingChanged();});
+$('gyro-sensitivity').addEventListener('input',e=>{settings.gyroSensitivity=Number(e.target.value);settingChanged();});
+async function connectMotion(connect){
+  $('gyro-hid').disabled=true;$('gyro-dsu').disabled=true;$('gyro-disconnect').disabled=true;
+  try{await connect();}catch(error){toast(error.message||'运动来源连接失败，请检查设备。');}
+  finally{$('gyro-hid').disabled=false;$('gyro-dsu').disabled=!window.motionBridge;$('gyro-disconnect').disabled=false;}
+}
+$('gyro-hid').addEventListener('click',()=>connectMotion(()=>gyroConnection.connectHid()));
+$('gyro-dsu').disabled=!window.motionBridge;
+$('gyro-dsu').addEventListener('click',()=>connectMotion(()=>gyroConnection.connectDsu(Number($('dsu-port').value),Number($('dsu-slot').value))));
+$('gyro-disconnect').addEventListener('click',()=>gyroConnection.disconnect());
+$('gyro-calibrate').addEventListener('click',()=>{if(gyroState.fresh(performance.now()))gyroState.calibrate(performance.now());else toast('请先连接并确认收到运动数据。');});
 $('gamepadVibration').addEventListener('change',e=>{settings.gamepadVibration=e.target.checked;settingChanged();if(!settings.gamepadVibration)gamepadInput.stopRumble();});
 $('effects-enabled').addEventListener('change',e=>{settings.effects=e.target.checked;settingChanged();});
 for(const group of ['hit','miss'])$('preview-'+group).addEventListener('click',()=>{unlockAudio();const clip=memes.trigger(group,performance.now(),true);if(clip?.kind==='blast')boom();else playRandom(group);});
@@ -58,7 +80,7 @@ document.querySelectorAll('[data-mode]').forEach(el=>el.addEventListener('click'
   syncSettings();populate(true);
 }));
 document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>{
-  const tab=el.dataset.tab;document.querySelectorAll('.page-panel').forEach(panel=>panel.hidden=panel.id!==tab+'-panel');
+  const tab=el.dataset.tab;if(state==='running'&&tab!=='training')pause();if(tab!=='controller')lab.stop();document.querySelectorAll('.page-panel').forEach(panel=>panel.hidden=panel.id!==tab+'-panel');
   document.querySelectorAll('[data-tab]').forEach(button=>button.classList.toggle('active',button.dataset.tab===tab));
   if(tab==='records')renderRecords();if(tab==='training')resize();
 }));
@@ -169,6 +191,9 @@ function highlightGamepadAction(){
 function updateGamepad(now,dt){
   let pads=[],supported=typeof navigator.getGamepads==='function';
   try{if(supported)pads=navigator.getGamepads();}catch{supported=false;}
+  lab.update(pads,now);
+  gyroState.tick(now);
+  if(now-lastGyroPaint>=100){lastGyroPaint=now;const fresh=gyroState.fresh(now);$('gyro-source').textContent=gyroConnection.source||'未连接';$('gyro-status').textContent=gyroConnection.source?(fresh?`${gyroConnection.message} · ${gyroState.rate} Hz · ${gyroState.notice}`:`${gyroConnection.message} · 暂无新运动数据，请检查连接`):'未连接陀螺仪';$('gyro-values').textContent=fresh?Object.entries(gyroState.corrected()).map(([k,v])=>k.toUpperCase()+' '+v.toFixed(2)).join(' · ')+' °/s':'X — · Y — · Z — °/s';}
   const active=!document.hidden&&document.hasFocus();
   const old=gamepadState;gamepadState=gamepadInput.poll(pads,now,active);
   const message=!supported?'此浏览器暂不支持手柄':gamepadState.connected?'手柄已连接 · 按 A / × 开始':gamepadState.unmapped?'未识别按键布局，请将手柄切换为 XInput 模式':'连接手柄后按任意键唤醒';
@@ -183,7 +208,8 @@ function updateGamepad(now,dt){
     if(gamepadState.pause||gamepadState.cancel){pause();return;}
     const stick=stickVector(gamepadState.look.x,gamepadState.look.y,session.settings.gamepadDeadzone);
     const delta=lookDelta(stick,dt,session.settings.gamepadSensitivity,gamepadState.precision);
-    camera.rotation.y+=delta.yaw;camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x+delta.pitch,-1.3,1.3);
+    const motion=gyroState.delta(now,dt,session.settings,gamepadState.precision);
+    camera.rotation.y+=delta.yaw+motion.yaw;camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x+delta.pitch+motion.pitch,-1.3,1.3);
     weapon.aim(-delta.yaw/.002,-delta.pitch/.002);
     if(gamepadState.fire)shoot(0,0);
   }else if(state==='preview'){
@@ -239,7 +265,7 @@ document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElemen
 document.addEventListener('pointerlockerror',lockFallback);
 document.addEventListener('mousemove',e=>{if(state==='running'&&inputMode==='fps'&&document.pointerLockElement===renderer.domElement){camera.rotation.y-=e.movementX*.002*session.settings.sensitivity;camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x-e.movementY*.002*session.settings.sensitivity,-1.3,1.3);weapon.aim(e.movementX,e.movementY);}});
 document.addEventListener('keydown',e=>{if(e.code==='Escape'&&state==='running')pause();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});window.addEventListener('blur',()=>pause());
+document.addEventListener('visibilitychange',()=>{if(document.hidden){lab.stop();pause();}});window.addEventListener('blur',()=>{lab.stop();pause();});
 function pointerDown(e){
   if(state!=='running'||e.button!==0)return;e.preventDefault();
   if(inputMode==='gamepad')return;

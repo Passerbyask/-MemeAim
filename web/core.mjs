@@ -1,9 +1,9 @@
-export const defaults = Object.freeze({duration:60,sensitivity:1,gamepadSensitivity:1,gamepadDeadzone:.15,gamepadVibration:true,radius:0.35,count:3,speed:2,lifetime:1,control:'fps',crosshair:'cross',color:'#c5f66b',sound:true,effects:true,volume:0.35});
+export const defaults = Object.freeze({duration:60,sensitivity:1,gamepadSensitivity:1,gamepadDeadzone:.15,gamepadVibration:true,gyroEnabled:false,gyroSensitivity:1,gyroActivation:'precision',gyroYawAxis:'y',gyroInvertX:false,gyroInvertY:false,radius:0.35,count:3,speed:2,lifetime:1,control:'fps',crosshair:'cross',color:'#c5f66b',sound:true,effects:true,volume:0.35});
 export const modes = {gridshot:{name:'精准速点',label:'GRIDSHOT'},tracking:{name:'移动追踪',label:'TRACKING'},flick:{name:'闪现甩枪',label:'FLICK'}};
 export function sanitizeSettings(raw={}){
   raw=raw&&typeof raw==='object'?raw:{};
   const result={...defaults};
-  for(const [key,min,max] of [['duration',10,180],['sensitivity',0.2,3],['gamepadSensitivity',.2,3],['gamepadDeadzone',.05,.35],['radius',0.15,0.6],['count',1,10],['speed',0.5,5],['lifetime',0.2,3],['volume',0,1]]){
+  for(const [key,min,max] of [['duration',10,180],['sensitivity',0.2,3],['gamepadSensitivity',.2,3],['gamepadDeadzone',.05,.35],['gyroSensitivity',.1,5],['radius',0.15,0.6],['count',1,10],['speed',0.5,5],['lifetime',0.2,3],['volume',0,1]]){
     if(typeof raw[key]==='number' && Number.isFinite(raw[key])) result[key]=Math.max(min,Math.min(max,raw[key]));
   }
   result.count=Math.round(result.count);
@@ -11,12 +11,15 @@ export function sanitizeSettings(raw={}){
   if(['fps','cursor','gamepad'].includes(raw.control)) result.control=raw.control;
   if(['cross','dot','circle'].includes(raw.crosshair)) result.crosshair=raw.crosshair;
   if(['#c5f66b','#ffffff','#52dfff','#ff78ac'].includes(raw.color)) result.color=raw.color;
+  if(['precision','always'].includes(raw.gyroActivation))result.gyroActivation=raw.gyroActivation;
+  if(['y','z'].includes(raw.gyroYawAxis))result.gyroYawAxis=raw.gyroYawAxis;
+  for(const key of ['gyroEnabled','gyroInvertX','gyroInvertY'])if(typeof raw[key]==='boolean')result[key]=raw[key];
   if(typeof raw.gamepadVibration==='boolean')result.gamepadVibration=raw.gamepadVibration;
   if(typeof raw.sound==='boolean')result.sound=raw.sound;
   if(typeof raw.effects==='boolean')result.effects=raw.effects;
   return result;
 }
-export function configKey(mode,s){return JSON.stringify([mode,s.duration,s.radius,mode==='flick'?1:s.count,mode==='tracking'?s.speed:0,mode==='flick'?s.lifetime:0,s.control]);}
+export function configKey(mode,s){const parts=[mode,s.duration,s.radius,mode==='flick'?1:s.count,mode==='tracking'?s.speed:0,mode==='flick'?s.lifetime:0,s.control];if(s.control==='gamepad'&&s.gyroEnabled)parts.push('gyro',s.gyroActivation,s.gyroYawAxis);return JSON.stringify(parts);}
 export class Session {
   constructor(mode,settings){this.mode=mode;this.settings={...settings};this.elapsed=0;this.score=0;this.hits=0;this.shots=0;this.combo=0;this.maxCombo=0;this.expired=0;this.finished=false;}
   get remaining(){return Math.max(0,this.settings.duration-this.elapsed);}

@@ -37,7 +37,7 @@ module.exports = async function smoke(window) {
     const virtual={connected:true,mapping:'standard',index:0,id:'MemeAim simulated controller',axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,value:0}))};
     const vibrations=[];let vibrationStops=0;virtual.vibrationActuator={effects:['dual-rumble'],playEffect:async(_type,params)=>{vibrations.push(params);},reset:async()=>{vibrationStops++;}};
     let pads=[virtual],pollCount=0;const gamepadErrors=[];window.addEventListener('error',e=>gamepadErrors.push(e.message));
-    const until=async(test,message)=>{for(let n=0;n<80;n++){if(test())return;await wait(25);}throw new Error(message);};
+    const until=async(test,message)=>{for(let n=0;n<200;n++){if(test())return;await wait(25);}throw new Error(message);};
     const press=async(index)=>{let before=pollCount;virtual.buttons[index]={pressed:true,value:1};await until(()=>pollCount>before,'Controller press was not sampled');await wait(80);before=pollCount;virtual.buttons[index]={pressed:false,value:0};await until(()=>pollCount>before,'Controller release was not sampled');await wait(40);};
     try{
       Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>{pollCount++;return pads;}});
@@ -61,6 +61,43 @@ module.exports = async function smoke(window) {
       virtual.buttons[7]={pressed:false,value:0};const releasePoll=pollCount;await until(()=>pollCount>releasePoll,'Reconnect release was not sampled');await press(0);
       check(document.getElementById('overlay').hidden,'Reconnect recovery failed');
       await press(1);await press(1);check(!document.body.classList.contains('playing'),'Controller return home failed');
+
+      document.querySelector('[data-tab="controller"]').click();
+      virtual.axes=[.2,-.4,.03,.04];virtual.buttons[6]={value:.4,pressed:false};
+      await until(()=>document.getElementById('lab-values').textContent.includes('0.200'),'Lab axes not sampled');
+      await until(()=>document.getElementById('lab-lt-value').textContent==='0.400','Lab trigger not sampled');
+      check(document.querySelectorAll('#lab-buttons .lab-button').length===17,'Lab buttons missing');
+      const zone=document.getElementById('lab-deadzone');zone.value='.2';zone.dispatchEvent(new Event('input'));
+      check(document.getElementById('gamepadDeadzone').value==='0.2','Lab deadzone not shared with training');
+      virtual.axes=[.03,0,.04,0];virtual.buttons[6]={value:0,pressed:false};document.getElementById('lab-center').click();
+      await until(()=>!document.getElementById('lab-apply').disabled,'Lab drift measurement did not complete');
+      check(document.getElementById('lab-drift').textContent.includes('3.0%'),'Lab drift reading missing');
+      document.getElementById('lab-apply').click();check(Number(document.getElementById('gamepadDeadzone').value)<=.07,'Suggested deadzone did not apply');
+      const labRumbles=vibrations.length;document.getElementById('lab-rumble').click();await until(()=>vibrations.length>labRumbles,'Lab rumble failed');
+      virtual.mapping='';await until(()=>document.getElementById('lab-status').textContent.includes('原始布局'),'Non-standard lab input missing');virtual.mapping='standard';
+      check(typeof window.motionBridge?.connect==='function','Desktop motion bridge missing');
+
+      // Simulated USB reports test the public HID UI without claiming hardware validation.
+      const hidDescriptor=Object.getOwnPropertyDescriptor(navigator,'hid');
+      const device=new EventTarget();Object.assign(device,{productName:'Simulated DualSense',opened:false,open:async()=>{device.opened=true;},close:async()=>{device.opened=false;},receiveFeatureReport:async()=>new DataView(new ArrayBuffer(41))});
+      let motionTimer;
+      try{
+        const hid=new EventTarget();hid.requestDevice=async({filters})=>{check(filters.some(f=>f.vendorId===0x054c&&f.productId===0x0ce6),'DualSense filter missing');return [device];};
+        Object.defineProperty(navigator,'hid',{configurable:true,value:hid});
+        document.getElementById('gyro-hid').click();await until(()=>device.opened,'HID did not open');
+        let rawY=66;
+        const emit=()=>{const data=new DataView(new ArrayBuffer(63));data.setInt16(15,49,true);data.setInt16(17,rawY,true);const event=new Event('inputreport');Object.defineProperties(event,{reportId:{value:1},data:{value:data}});device.dispatchEvent(event);};
+        motionTimer=setInterval(emit,20);emit();
+        await until(()=>document.getElementById('gyro-values').textContent.includes('4.02'),'Motion values missing');
+        document.getElementById('gyro-calibrate').click();await until(()=>document.getElementById('gyro-status').textContent.includes('校准完成'),'HID stationary calibration failed');
+        const enabled=document.getElementById('gyro-enabled');enabled.checked=true;enabled.dispatchEvent(new Event('change'));
+        check(JSON.parse(localStorage.getItem('memeaim-3d-v1')).settings.gyroEnabled,'Gyro setting not saved');
+        rawY=394;await until(()=>document.getElementById('gyro-values').textContent.includes('20.00'),'Calibrated motion did not subtract bias');
+        clearInterval(motionTimer);await until(()=>document.getElementById('gyro-values').textContent.includes('—'),'Stale motion values not cleared');
+        document.getElementById('gyro-disconnect').click();await until(()=>!device.opened,'HID did not close');
+        enabled.checked=false;enabled.dispatchEvent(new Event('change'));
+      }finally{clearInterval(motionTimer);if(hidDescriptor)Object.defineProperty(navigator,'hid',hidDescriptor);else delete navigator.hid;}
+      document.querySelector('[data-tab="training"]').click();
     }finally{
       shotObserver.disconnect();
       for(const [i,[object,key]] of [[navigator,'getGamepads'],[document,'hasFocus'],[document,'hidden']].entries()){
@@ -68,8 +105,14 @@ module.exports = async function smoke(window) {
       }
     }
     localStorage.setItem('desktop-smoke','persisted');
-    return {videoCount:urls.length,hitSounds:manifest.hit.length,missSounds:manifest.miss.length,modes,particleCount:particleKinds.length,gamepadSimulation:true,vibrationSimulation:true};
+    return {videoCount:urls.length,hitSounds:manifest.hit.length,missSounds:manifest.miss.length,modes,particleCount:particleKinds.length,gamepadSimulation:true,vibrationSimulation:true,controllerLabSimulation:true,gyroHidSimulation:true,desktopMotionBridge:true};
   })()`,true);
+  if(process.env.MEMEAIM_LAB_SCREENSHOT){
+    await window.webContents.executeJavaScript(`document.querySelector('[data-tab="controller"]').click();new Promise(r=>setTimeout(r,100))`);
+    require('node:fs').writeFileSync(process.env.MEMEAIM_LAB_SCREENSHOT,(await window.webContents.capturePage()).toPNG());
+    await window.webContents.executeJavaScript(`document.getElementById('gyro-source').scrollIntoView();new Promise(r=>setTimeout(r,100))`);
+    require('node:fs').writeFileSync(process.env.MEMEAIM_LAB_SCREENSHOT.replace(/\.png$/,'-gyro.png'),(await window.webContents.capturePage()).toPNG());
+  }
   await window.loadURL('memeaim://app/');
   const persisted=await window.webContents.executeJavaScript(`localStorage.getItem('desktop-smoke')==='persisted'`);
   if(!persisted)throw new Error('Local storage did not survive reload');
