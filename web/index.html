@@ -20,6 +20,7 @@
             <div class="arena-top"><span class="scene-badge"><i></i> <span id="arena-mode">GRIDSHOT</span></span><div class="arena-actions"><button id="mute" aria-label="切换静音" title="切换静音">♫</button><button id="fullscreen" aria-label="切换全屏" title="切换全屏">⛶</button></div></div>
             <div id="hud" class="hud" hidden><div><small>得分</small><b id="score">0</b></div><div><small>剩余时间</small><b id="timer">60.0</b></div><div><small>命中率</small><b id="accuracy">0%</b></div><div><small>连击</small><b id="combo">0</b></div></div>
             <div id="reticle" class="reticle" hidden><i></i><i></i><i></i><i></i></div>
+            <div id="gamepad-hint" class="gamepad-hint" hidden>右摇杆瞄准 · RT / R2 射击 · LT / L2 精瞄 · Start 暂停</div>
             <div id="hit-marker" class="hit-marker"></div><div id="feedback" class="feedback" aria-live="polite"></div>
             <div id="preview-caption" class="preview-caption"><span class="tiny-label">LIVE 3D PREVIEW</span><h2>专注你的下一枪。</h2><p>立体靶球 · 真实视角 · 即刻进入状态</p></div>
             <div id="arena-bottom" class="arena-bottom"><span><i class="online-dot"></i> 训练场就绪</span><span>鼠标瞄准 <kbd>LMB</kbd> 射击 <kbd>ESC</kbd> 暂停</span></div>
@@ -41,13 +42,20 @@
           <div class="field"><label for="count">靶球数量 <output id="count-out"></output></label><input id="count" type="range" min="1" max="10" step="1"></div>
           <div class="field mode-field" id="speed-field" hidden><label for="speed">移动速度 <output id="speed-out"></output></label><input id="speed" type="range" min="0.5" max="5" step="0.25"></div>
           <div class="field mode-field" id="lifetime-field" hidden><label for="lifetime">目标停留 <output id="lifetime-out"></output></label><input id="lifetime" type="range" min="0.2" max="3" step="0.1"></div>
-          <div class="field"><label for="control">瞄准方式</label><select id="control"><option value="fps">第一人称 · 鼠标转动视角</option><option value="cursor">自由指针 · 点击立体靶球</option></select></div>
+          <div class="field"><label for="control">瞄准方式</label><select id="control"><option value="fps">第一人称 · 鼠标转动视角</option><option value="cursor">自由指针 · 点击立体靶球</option><option value="gamepad">手柄 · 右摇杆瞄准</option></select></div>
+          <div class="gamepad-status" id="gamepad-status" role="status">连接手柄后按任意键唤醒</div>
+          <div id="gamepad-options" hidden>
+            <div class="field"><label for="gamepadSensitivity">手柄灵敏度 <output id="gamepadSensitivity-out"></output></label><input id="gamepadSensitivity" type="range" min="0.2" max="3" step="0.1"></div>
+            <div class="field"><label for="gamepadDeadzone">摇杆死区 <output id="gamepadDeadzone-out"></output></label><input id="gamepadDeadzone" type="range" min="0.05" max="0.35" step="0.01"></div>
+            <div class="sound-toggle"><div><strong>手柄震动</strong><small>开枪与命中反馈 · 支持时生效</small></div><label class="switch"><input id="gamepadVibration" type="checkbox" aria-label="开启手柄震动"><span></span></label></div>
+            <p class="gamepad-help">右摇杆瞄准 · RT / R2 连续射击<br>LT / L2 精瞄 · A / × 确认 / 单发<br>B / ○ 返回 · Start / Options 暂停<br>方向键左右 / LB、RB 选择模式<br>暂停时上下选择操作，再按 A / × 确认</p>
+          </div>
           <div class="settings-divider"></div><div class="crosshair-heading"><h3>准星</h3><span>实时预览</span></div>
           <div class="crosshair-options"><div id="crosshair-preview"><div class="reticle"><i></i><i></i><i></i><i></i></div></div><div><label for="crosshair" class="sr-only">准星样式</label><select id="crosshair"><option value="cross">十字准星</option><option value="dot">圆点准星</option><option value="circle">圆环准星</option></select><div class="swatches" aria-label="准星颜色"><button data-color="#c5f66b" style="--swatch:#c5f66b" aria-label="青柠色准星"></button><button data-color="#ffffff" style="--swatch:#ffffff" aria-label="白色准星"></button><button data-color="#52dfff" style="--swatch:#52dfff" aria-label="蓝色准星"></button><button data-color="#ff78ac" style="--swatch:#ff78ac" aria-label="粉色准星"></button></div></div></div>
           <div class="sound-toggle"><div><strong>梗音效</strong><small>每一枪，都有节目效果</small></div><label class="switch"><input id="sound-enabled" type="checkbox" aria-label="开启梗音效"><span></span></label></div>
           <div class="sound-toggle effect-setting"><div><strong>绿幕梗特效</strong><small>18 段随机反应 · 11 种全屏特效</small></div><label class="switch"><input id="effects-enabled" type="checkbox" aria-label="开启绿幕梗特效"><span></span></label></div>
           <div class="effect-preview-actions"><button id="preview-hit">命中 ▷</button><button id="preview-miss">打空 ▷</button><button id="preview-dragon">神龙 ▷</button><button id="preview-screen">全屏 ▷</button></div>
-          <button id="start" class="primary start-button"><span>开始训练</span><span>→</span></button><p class="start-note">建议使用电脑 + 鼠标，获得最佳体验</p>
+          <button id="start" class="primary start-button"><span>开始训练</span><span>→</span></button><p class="start-note">支持鼠标或标准手柄 · 手柄按 A / × 开始</p>
           <div class="personal-best"><span>♜ 当前配置最佳</span><strong id="personal-best">—</strong></div>
         </aside>
       </div>

@@ -19,7 +19,7 @@ app.whenReady().then(async()=>{
   session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(_details,callback)=>callback({cancel:true}));
   Menu.setApplicationMenu(null);
   window = new BrowserWindow({width:1440,height:960,minWidth:900,minHeight:640,title:'MemeAim 3D',backgroundColor:'#101419',icon:path.join(__dirname,'icon.ico'),show:!smoke,
-    webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,spellcheck:false,backgroundThrottling:!smoke}});
+    webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,spellcheck:false,backgroundThrottling:!smoke,offscreen:smoke}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   window.webContents.on('will-navigate',(event,url)=>{if(!trusted(url))event.preventDefault();});
   window.webContents.on('will-attach-webview',event=>event.preventDefault());

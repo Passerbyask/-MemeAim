@@ -15,11 +15,14 @@ test('倒计时归零后不再计分；提前结束的结果单独标记',()=>{
 });
 test('排行榜配置隔离时长、靶球和瞄准方式，忽略无关选项',()=>{
   const a=configKey('gridshot',defaults);
-  for(const change of [{duration:30},{radius:.5},{count:5},{control:'cursor'}])assert.notEqual(a,configKey('gridshot',{...defaults,...change}));
+  for(const change of [{duration:30},{radius:.5},{count:5},{control:'cursor'},{control:'gamepad'}])assert.notEqual(a,configKey('gridshot',{...defaults,...change}));
   assert.equal(a,configKey('gridshot',{...defaults,color:'#ffffff',speed:4}));
   assert.notEqual(configKey('flick',defaults),configKey('flick',{...defaults,lifetime:2}));
 });
 test('损坏或越界的持久化设置恢复为安全值',()=>{
   const s=sanitizeSettings({duration:999,radius:-4,count:2.7,sensitivity:NaN,control:'bad',sound:'false',volume:2});
   assert.equal(s.duration,180);assert.equal(s.radius,.15);assert.equal(s.count,3);assert.equal(s.sensitivity,1);assert.equal(s.control,'fps');assert.equal(s.sound,true);assert.equal(s.volume,1);
+  const pad=sanitizeSettings({control:'gamepad',gamepadSensitivity:10,gamepadDeadzone:0});
+  assert.equal(pad.control,'gamepad');assert.equal(pad.gamepadSensitivity,3);assert.equal(pad.gamepadDeadzone,.05);
+  assert.equal(sanitizeSettings({}).gamepadDeadzone,.15);
 });

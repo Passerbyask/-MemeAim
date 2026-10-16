@@ -9,3 +9,9 @@
 .screen-effects{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}.effect-preview-actions{flex-wrap:wrap}
 
 .screen-effects{object-fit:cover}
+
+.gamepad-status{font-size:11px;color:#9ca9b4;margin:-4px 0 14px;line-height:1.6}
+.gamepad-help{font-size:11px;line-height:1.9;color:#9ca9b4;margin:0 0 18px}
+.gamepad-hint{position:absolute;bottom:18px;left:20px;right:20px;text-align:center;font-size:11px;color:#c9d4dd;z-index:4;pointer-events:none;text-shadow:0 1px 6px #000}
+#overlay-actions .gamepad-selected{outline:2px solid #c5f66b;outline-offset:4px}
+@media(max-width:880px){#gamepad-options,.gamepad-status{grid-column:1/-1}#gamepad-options .field{margin-bottom:16px}.gamepad-hint{font-size:10px;bottom:10px}}

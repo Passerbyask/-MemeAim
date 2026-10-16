@@ -1,16 +1,17 @@
-export const defaults = Object.freeze({duration:60,sensitivity:1,radius:0.35,count:3,speed:2,lifetime:1,control:'fps',crosshair:'cross',color:'#c5f66b',sound:true,effects:true,volume:0.35});
+export const defaults = Object.freeze({duration:60,sensitivity:1,gamepadSensitivity:1,gamepadDeadzone:.15,gamepadVibration:true,radius:0.35,count:3,speed:2,lifetime:1,control:'fps',crosshair:'cross',color:'#c5f66b',sound:true,effects:true,volume:0.35});
 export const modes = {gridshot:{name:'精准速点',label:'GRIDSHOT'},tracking:{name:'移动追踪',label:'TRACKING'},flick:{name:'闪现甩枪',label:'FLICK'}};
 export function sanitizeSettings(raw={}){
   raw=raw&&typeof raw==='object'?raw:{};
   const result={...defaults};
-  for(const [key,min,max] of [['duration',10,180],['sensitivity',0.2,3],['radius',0.15,0.6],['count',1,10],['speed',0.5,5],['lifetime',0.2,3],['volume',0,1]]){
+  for(const [key,min,max] of [['duration',10,180],['sensitivity',0.2,3],['gamepadSensitivity',.2,3],['gamepadDeadzone',.05,.35],['radius',0.15,0.6],['count',1,10],['speed',0.5,5],['lifetime',0.2,3],['volume',0,1]]){
     if(typeof raw[key]==='number' && Number.isFinite(raw[key])) result[key]=Math.max(min,Math.min(max,raw[key]));
   }
   result.count=Math.round(result.count);
   if(![10,30,60,90,120,180].includes(result.duration)) result.duration=60;
-  if(['fps','cursor'].includes(raw.control)) result.control=raw.control;
+  if(['fps','cursor','gamepad'].includes(raw.control)) result.control=raw.control;
   if(['cross','dot','circle'].includes(raw.crosshair)) result.crosshair=raw.crosshair;
   if(['#c5f66b','#ffffff','#52dfff','#ff78ac'].includes(raw.color)) result.color=raw.color;
+  if(typeof raw.gamepadVibration==='boolean')result.gamepadVibration=raw.gamepadVibration;
   if(typeof raw.sound==='boolean')result.sound=raw.sound;
   if(typeof raw.effects==='boolean')result.effects=raw.effects;
   return result;

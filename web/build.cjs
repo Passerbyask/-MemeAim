@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = __dirname;
 const out = path.join(root, 'dist');
 fs.mkdirSync(out, { recursive: true });
-for (const file of ['index.html', 'styles.css', 'app.js', 'core.mjs', 'weapon.js', 'meme-effects.mjs']) {
+for (const file of ['index.html', 'styles.css', 'app.js', 'core.mjs', 'weapon.js', 'meme-effects.mjs', 'gamepad.mjs']) {
   fs.copyFileSync(path.join(root, file), path.join(out, file));
 }
 fs.cpSync(path.join(root, 'effects'), path.join(out, 'effects'), { recursive: true });

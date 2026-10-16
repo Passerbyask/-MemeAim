@@ -31,8 +31,42 @@ module.exports = async function smoke(window) {
       check(!document.getElementById('overlay').hidden,'Pause failed: '+mode);
       const buttons=[...document.querySelectorAll('#overlay-actions button')];buttons.find(b=>b.textContent==='返回训练场').click();
     }
+    // Virtual standard controller exercises the real frame loop and DOM flow.
+    const descriptors=[Object.getOwnPropertyDescriptor(navigator,'getGamepads'),Object.getOwnPropertyDescriptor(document,'hasFocus'),Object.getOwnPropertyDescriptor(document,'hidden')];
+    const virtual={connected:true,mapping:'standard',index:0,id:'MemeAim simulated controller',axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,value:0}))};
+    const vibrations=[];let vibrationStops=0;virtual.vibrationActuator={effects:['dual-rumble'],playEffect:async(_type,params)=>{vibrations.push(params);},reset:async()=>{vibrationStops++;}};
+    let pads=[virtual],pollCount=0;const gamepadErrors=[];window.addEventListener('error',e=>gamepadErrors.push(e.message));
+    const until=async(test,message)=>{for(let n=0;n<80;n++){if(test())return;await wait(25);}throw new Error(message);};
+    const press=async(index)=>{virtual.buttons[index]={pressed:true,value:1};await wait(300);virtual.buttons[index]={pressed:false,value:0};await wait(150);};
+    try{
+      Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>{pollCount++;return pads;}});
+      Object.defineProperty(document,'hasFocus',{configurable:true,value:()=>true});
+      Object.defineProperty(document,'hidden',{configurable:true,value:false});
+      await until(()=>document.getElementById('gamepad-status').textContent.includes('已连接'),'Controller not detected');
+      const beforeMode=document.querySelector('.mode-card.selected').dataset.mode;await press(5);check(document.querySelector('.mode-card.selected').dataset.mode!==beforeMode,'Controller mode selection failed: '+beforeMode+' -> '+document.querySelector('.mode-card.selected').dataset.mode+' polls='+pollCount+' hidden='+document.hidden+' focus='+document.hasFocus()+' errors='+JSON.stringify(gamepadErrors));
+      await press(0);check(document.getElementById('control').value==='gamepad','Controller did not select input mode');
+      await press(0);check(document.getElementById('overlay').hidden,'Controller did not enter training');
+      check(!document.getElementById('reticle').hidden,'Controller crosshair missing');
+      virtual.axes[2]=.5;await wait(100);virtual.axes[2]=0;
+      await press(7);check(document.getElementById('feedback').textContent.length>0,'Controller trigger did not shoot');
+      check(vibrations.length>0,'Controller vibration missing');
+      const stopsBefore=vibrationStops;await press(9);check(!document.getElementById('overlay').hidden,'Controller pause failed');check(vibrationStops>stopsBefore,'Pause did not stop vibration');
+      const timer=document.getElementById('timer').textContent;await wait(150);check(document.getElementById('timer').textContent===timer,'Paused controller timer advanced');
+      await press(0);check(document.getElementById('overlay').hidden,'Controller resume failed');
+      pads=[];await until(()=>!document.getElementById('overlay').hidden,'Disconnect did not pause');
+      check(document.getElementById('overlay-body').textContent.includes('手柄'),'Disconnect reason missing');
+      pads=[virtual];virtual.buttons[7]={pressed:true,value:1};await wait(150);
+      check(!document.getElementById('overlay').hidden,'Reconnect resumed without confirmation');
+      virtual.buttons[7]={pressed:false,value:0};await wait(100);await press(0);
+      check(document.getElementById('overlay').hidden,'Reconnect recovery failed');
+      await press(1);await press(1);check(!document.body.classList.contains('playing'),'Controller return home failed');
+    }finally{
+      for(const [i,[object,key]] of [[navigator,'getGamepads'],[document,'hasFocus'],[document,'hidden']].entries()){
+        if(descriptors[i])Object.defineProperty(object,key,descriptors[i]);else delete object[key];
+      }
+    }
     localStorage.setItem('desktop-smoke','persisted');
-    return {videoCount:urls.length,hitSounds:manifest.hit.length,missSounds:manifest.miss.length,modes,particleCount:particleKinds.length};
+    return {videoCount:urls.length,hitSounds:manifest.hit.length,missSounds:manifest.miss.length,modes,particleCount:particleKinds.length,gamepadSimulation:true,vibrationSimulation:true};
   })()`,true);
   await window.loadURL('memeaim://app/');
   const persisted=await window.webContents.executeJavaScript(`localStorage.getItem('desktop-smoke')==='persisted'`);

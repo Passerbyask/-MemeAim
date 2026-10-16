@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import {defaults,modes,sanitizeSettings,configKey,Session} from './core.mjs';
 import {HeldWeapon} from './weapon.js';
 import {MemeEffects,MixedScreenEffects} from './meme-effects.mjs';
+import {GamepadInput,stickVector,lookDelta} from './gamepad.mjs';
 
 const $=id=>document.getElementById(id);
 const STORAGE='memeaim-3d-v1';
@@ -17,9 +18,11 @@ let scene,camera,renderer,raycaster,geometry,targetMaterial,ringGeometry,ringMat
 let weapon;
 const memes=new MemeEffects($('arena'),toast);
 const screenEffects=new MixedScreenEffects($('arena'));
+const gamepadInput=new GamepadInput();
+let gamepadState={connected:false},gamepadMessage='',overlayIndex=0;
 let activeSynth=[];
 let inputMode=settings.control,playBounds={x:5.2,y:2.45},cursorPoint=new THREE.Vector2();
-const numericFields=['duration','sensitivity','radius','count','speed','lifetime','volume'];
+const numericFields=['duration','sensitivity','gamepadSensitivity','gamepadDeadzone','radius','count','speed','lifetime','volume'];
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').hidden=true,5000);}
 function persist(){try{localStorage.setItem(STORAGE,JSON.stringify({settings,history,bests,disabled}));}catch{toast('浏览器无法保存数据，本次仍可正常训练。');}}
 function bestScore(){const best=bests[configKey(mode,settings)];return Number.isFinite(best)?best:null;}
@@ -27,6 +30,8 @@ function syncSettings(){
   for(const key of numericFields)$(key).value=settings[key];
   for(const key of ['control','crosshair'])$(key).value=settings[key];
   $('duration-out').textContent=settings.duration+' s';$('sensitivity-out').textContent=settings.sensitivity.toFixed(1)+'×';
+  $('gamepadSensitivity-out').textContent=settings.gamepadSensitivity.toFixed(1)+'×';$('gamepadDeadzone-out').textContent=Math.round(settings.gamepadDeadzone*100)+'%';
+  $('gamepad-options').hidden=settings.control!=='gamepad';$('gamepadVibration').checked=settings.gamepadVibration;
   $('radius-out').textContent=Math.round(settings.radius*100)+' cm';$('count-out').textContent=mode==='flick'?'1 个':settings.count+' 个';
   $('speed-out').textContent=settings.speed.toFixed(2)+' m/s';$('lifetime-out').textContent=settings.lifetime.toFixed(1)+' s';$('volume-out').textContent=Math.round(settings.volume*100)+'%';
   $('count').disabled=mode==='flick';$('speed-field').hidden=mode!=='tracking';$('lifetime-field').hidden=mode!=='flick';
@@ -41,6 +46,7 @@ function settingChanged(){persist();syncSettings();if(state==='preview'&&scene)p
 for(const key of numericFields)$(key).addEventListener('input',e=>{settings[key]=Number(e.target.value);settingChanged();});
 for(const key of ['control','crosshair'])$(key).addEventListener('change',e=>{settings[key]=e.target.value;settingChanged();});
 $('sound-enabled').addEventListener('change',e=>{settings.sound=e.target.checked;settingChanged();if(!settings.sound)stopAudio();});
+$('gamepadVibration').addEventListener('change',e=>{settings.gamepadVibration=e.target.checked;settingChanged();if(!settings.gamepadVibration)gamepadInput.stopRumble();});
 $('effects-enabled').addEventListener('change',e=>{settings.effects=e.target.checked;settingChanged();});
 for(const group of ['hit','miss'])$('preview-'+group).addEventListener('click',()=>{unlockAudio();const clip=memes.trigger(group,performance.now(),true);if(clip?.kind==='blast')boom();else playRandom(group);});
 $('preview-screen').addEventListener('click',()=>{unlockAudio();screenEffects.trigger(performance.now(),true);boom();});
@@ -116,6 +122,7 @@ function spawn(preview=false,index=0){
 function burst(position){for(let i=0;i<12;i++){const mesh=new THREE.Mesh(geometry,targetMaterial);mesh.position.copy(position);mesh.scale.setScalar(.04+Math.random()*.045);scene.add(mesh);particles.push({mesh,life:.4,velocity:new THREE.Vector3((Math.random()-.5)*6,(Math.random()-.3)*6,(Math.random()-.5)*6)});}}
 function frame(now){
   const dt=Math.min((now-lastFrame)/1000,.25);lastFrame=now;
+  updateGamepad(now,dt);
   if(state==='running'){
     if(session.tick(dt)){finish(true);}else{
       for(const target of [...targets]){
@@ -153,17 +160,55 @@ function setOverlay(tag,title,body,buttons){
   if(typeof body==='string'){const p=document.createElement('p');p.textContent=body;$('overlay-body').append(p);}else $('overlay-body').append(body);
   $('overlay-actions').replaceChildren();buttons.forEach(({text,action,primary=false})=>{const button=document.createElement('button');button.textContent=text;button.className=primary?'primary':'secondary';button.addEventListener('click',action);$('overlay-actions').append(button);});
   $('overlay').hidden=false;
+  overlayIndex=0;highlightGamepadAction();
+}
+function highlightGamepadAction(){
+  const buttons=[...$('overlay-actions').children];
+  buttons.forEach((button,i)=>button.classList.toggle('gamepad-selected',inputMode==='gamepad'&&i===overlayIndex));
+}
+function updateGamepad(now,dt){
+  let pads=[],supported=typeof navigator.getGamepads==='function';
+  try{if(supported)pads=navigator.getGamepads();}catch{supported=false;}
+  const active=!document.hidden&&document.hasFocus();
+  const old=gamepadState;gamepadState=gamepadInput.poll(pads,now,active);
+  const message=!supported?'此浏览器暂不支持手柄':gamepadState.connected?'手柄已连接 · 按 A / × 开始':gamepadState.unmapped?'未识别按键布局，请将手柄切换为 XInput 模式':'连接手柄后按任意键唤醒';
+  if(message!==gamepadMessage){$('gamepad-status').textContent=message;gamepadMessage=message;}
+  $('gamepad-hint').hidden=!(state==='running'&&inputMode==='gamepad');
+  if(state==='running'&&inputMode==='gamepad'&&old.connected&&(!gamepadState.connected||old.index!==gamepadState.index||old.id!==gamepadState.id)){
+    pause('手柄已断开或切换，重新连接后按 A / × 继续。');return;
+  }
+  if(!active||!gamepadState.connected)return;
+  if(state==='running'){
+    if(inputMode!=='gamepad')return;
+    if(gamepadState.pause||gamepadState.cancel){pause();return;}
+    const stick=stickVector(gamepadState.look.x,gamepadState.look.y,session.settings.gamepadDeadzone);
+    const delta=lookDelta(stick,dt,session.settings.gamepadSensitivity,gamepadState.precision);
+    camera.rotation.y+=delta.yaw;camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x+delta.pitch,-1.3,1.3);
+    weapon.aim(-delta.yaw/.002,-delta.pitch/.002);
+    if(gamepadState.fire)shoot(0,0);
+  }else if(state==='preview'){
+    if($('training-panel').hidden){if(gamepadState.cancel)document.querySelector('[data-tab="training"]').click();return;}
+    if(gamepadState.mode){const cards=[...document.querySelectorAll('[data-mode]')],index=cards.findIndex(c=>c.dataset.mode===mode);cards[(index+gamepadState.mode+cards.length)%cards.length].click();}
+    if(gamepadState.confirm||gamepadState.pause){settings.control='gamepad';settingChanged();start();}
+  }else if(inputMode==='gamepad'){
+    if(gamepadState.cancel){home();return;}
+    const buttons=[...$('overlay-actions').children];
+    if(gamepadState.menu){overlayIndex=(overlayIndex+gamepadState.menu+buttons.length)%buttons.length;highlightGamepadAction();}
+    if(gamepadState.pause&&['ready','paused'].includes(state)){activate();return;}
+    if(gamepadState.confirm)buttons[overlayIndex]?.click();
+  }
 }
 function unlock(){if(document.pointerLockElement)document.exitPointerLock();}
 function start(){
   if(!renderer)return;memes.hide();screenEffects.hide();stopAudio();inputMode=settings.control;session=new Session(mode,settings);state='ready';
   document.body.classList.add('playing');$('preview-caption').hidden=true;$('arena-bottom').hidden=true;$('hud').hidden=false;
   $('reticle').hidden=true;camera.position.set(0,3.5,11);camera.rotation.set(0,0,0);resize();populate();updateHud();
-  setOverlay('READY WHEN YOU ARE',modes[mode].name,inputMode==='fps'?'鼠标转动视角，左键射击。按 Esc 暂停并释放鼠标。':'移动指针，点击立体靶球。触屏可直接点靶球。按 Esc 暂停。',[{text:'进入训练',action:activate,primary:true},{text:'返回训练场',action:home}]);
+  setOverlay('READY WHEN YOU ARE',modes[mode].name,inputMode==='gamepad'?'右摇杆瞄准，RT / R2 射击，LT / L2 精瞄。按 A / × 进入，Start / Options 暂停。':inputMode==='fps'?'鼠标转动视角，左键射击。按 Esc 暂停并释放鼠标。':'移动指针，点击立体靶球。触屏可直接点靶球。按 Esc 暂停。',[{text:'进入训练',action:activate,primary:true},{text:'返回训练场',action:home}]);
 }
 async function activate(){
   if(!['ready','paused'].includes(state))return;
   unlockAudio();
+  if(inputMode==='gamepad'&&!gamepadState.connected){toast('请连接标准手柄并按一下按键唤醒，也可返回后切换为鼠标。');return;}
   if(inputMode==='fps'){
     try{
       if(!renderer.domElement.requestPointerLock)throw new Error('unsupported');
@@ -174,11 +219,11 @@ async function activate(){
   }else run();
 }
 function lockFallback(){if(!['ready','paused'].includes(state))return;setOverlay('BROWSER COMPATIBILITY','请选择自由指针模式','当前浏览器未允许锁定鼠标。可以直接点击 3D 靶球，或在 Chrome / Edge 中重试。',[{text:'用自由指针继续',primary:true,action:()=>{inputMode='cursor';session.settings.control='cursor';camera.rotation.set(0,0,0);run();}},{text:'重试鼠标锁定',action:activate},{text:'返回训练场',action:home}]);}
-function run(){state='running';lastFrame=performance.now();$('overlay').hidden=true;$('reticle').hidden=inputMode!=='fps';renderer.domElement.style.cursor=inputMode==='cursor'?'crosshair':'none';}
-function pause(){if(state!=='running')return;state='paused';memes.hide();screenEffects.hide();unlock();stopAudio();$('reticle').hidden=true;setOverlay('TAKE A BREATH','训练已暂停','时间已冻结，放松一下手腕。',[{text:'继续训练',primary:true,action:activate},{text:'结束并查看结果',action:()=>finish(false)},{text:'返回训练场',action:home}]);}
-function home(){state='preview';memes.hide();screenEffects.hide();unlock();stopAudio();document.body.classList.remove('playing');$('overlay').hidden=true;$('hud').hidden=true;$('reticle').hidden=true;$('preview-caption').hidden=false;$('arena-bottom').hidden=false;renderer.domElement.style.cursor='default';camera.rotation.set(0,0,0);$('feedback').textContent='';feedbackUntil=0;resize();populate(true);syncSettings();}
+function run(){state='running';lastFrame=performance.now();$('overlay').hidden=true;$('reticle').hidden=inputMode==='cursor';renderer.domElement.style.cursor=inputMode==='cursor'?'crosshair':'none';}
+function pause(message='时间已冻结，放松一下手腕。'){if(state!=='running')return;state='paused';gamepadInput.suspend();memes.hide();screenEffects.hide();unlock();stopAudio();$('reticle').hidden=true;setOverlay('TAKE A BREATH','训练已暂停',message,[{text:'继续训练',primary:true,action:activate},{text:'结束并查看结果',action:()=>finish(false)},{text:'返回训练场',action:home}]);}
+function home(){gamepadInput.stopRumble();state='preview';memes.hide();screenEffects.hide();unlock();stopAudio();document.body.classList.remove('playing');$('overlay').hidden=true;$('hud').hidden=true;$('reticle').hidden=true;$('preview-caption').hidden=false;$('arena-bottom').hidden=false;renderer.domElement.style.cursor='default';camera.rotation.set(0,0,0);$('feedback').textContent='';feedbackUntil=0;resize();populate(true);syncSettings();}
 function finish(completed){
-  if(state==='results'||state==='preview')return;state='results';memes.hide();screenEffects.hide();session.finished=true;unlock();$('reticle').hidden=true;stopAudio();
+  if(state==='results'||state==='preview')return;gamepadInput.stopRumble();state='results';memes.hide();screenEffects.hide();session.finished=true;unlock();$('reticle').hidden=true;stopAudio();
   const result=session.result(completed);history.unshift(result);history=history.slice(0,50);
   const oldBest=Number.isFinite(bests[result.key])?bests[result.key]:-1;const newBest=completed&&result.score>oldBest;
   if(newBest)bests[result.key]=result.score;persist();
@@ -197,11 +242,16 @@ document.addEventListener('keydown',e=>{if(e.code==='Escape'&&state==='running')
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});window.addEventListener('blur',()=>pause());
 function pointerDown(e){
   if(state!=='running'||e.button!==0)return;e.preventDefault();
+  if(inputMode==='gamepad')return;
   if(inputMode==='fps'&&document.pointerLockElement!==renderer.domElement)return;
   const rect=renderer.domElement.getBoundingClientRect();
-  cursorPoint.set(inputMode==='fps'?0:(e.clientX-rect.left)/rect.width*2-1,inputMode==='fps'?0:-(e.clientY-rect.top)/rect.height*2+1);
+  shoot(inputMode==='fps'?0:(e.clientX-rect.left)/rect.width*2-1,inputMode==='fps'?0:-(e.clientY-rect.top)/rect.height*2+1);
+}
+function shoot(x,y){
+  if(state!=='running')return;cursorPoint.set(x,y);
   camera.updateMatrixWorld();scene.updateMatrixWorld(true);raycaster.setFromCamera(cursorPoint,camera);
   const intersection=raycaster.intersectObjects(targets.map(t=>t.mesh),false)[0];session.shoot(Boolean(intersection));weapon.fire();
+  if(inputMode==='gamepad'&&settings.gamepadVibration)gamepadInput.rumble(Boolean(intersection));
   if(intersection){const index=targets.findIndex(t=>t.mesh===intersection.object);const target=targets[index];burst(target.mesh.position);scene.remove(target.mesh);targets.splice(index,1);spawn();}
   $('feedback').textContent=intersection?(session.combo>=5?`${session.combo} 连击！`:'+1'):'MISS';$('feedback').style.color=intersection?'#c5f66b':'#ff7b8c';
   $('hit-marker').className='hit-marker '+(intersection?'hit':'miss');feedbackUntil=performance.now()+350;
