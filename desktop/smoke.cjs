@@ -32,12 +32,13 @@ module.exports = async function smoke(window) {
       const buttons=[...document.querySelectorAll('#overlay-actions button')];buttons.find(b=>b.textContent==='返回训练场').click();
     }
     // Virtual standard controller exercises the real frame loop and DOM flow.
+    let observedShots=0;const shotObserver=new MutationObserver(()=>{if(document.getElementById('feedback').textContent)observedShots++;});shotObserver.observe(document.getElementById('feedback'),{childList:true,characterData:true,subtree:true});
     const descriptors=[Object.getOwnPropertyDescriptor(navigator,'getGamepads'),Object.getOwnPropertyDescriptor(document,'hasFocus'),Object.getOwnPropertyDescriptor(document,'hidden')];
     const virtual={connected:true,mapping:'standard',index:0,id:'MemeAim simulated controller',axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,value:0}))};
     const vibrations=[];let vibrationStops=0;virtual.vibrationActuator={effects:['dual-rumble'],playEffect:async(_type,params)=>{vibrations.push(params);},reset:async()=>{vibrationStops++;}};
     let pads=[virtual],pollCount=0;const gamepadErrors=[];window.addEventListener('error',e=>gamepadErrors.push(e.message));
     const until=async(test,message)=>{for(let n=0;n<80;n++){if(test())return;await wait(25);}throw new Error(message);};
-    const press=async(index)=>{virtual.buttons[index]={pressed:true,value:1};await wait(300);virtual.buttons[index]={pressed:false,value:0};await wait(150);};
+    const press=async(index)=>{let before=pollCount;virtual.buttons[index]={pressed:true,value:1};await until(()=>pollCount>before,'Controller press was not sampled');await wait(80);before=pollCount;virtual.buttons[index]={pressed:false,value:0};await until(()=>pollCount>before,'Controller release was not sampled');await wait(40);};
     try{
       Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>{pollCount++;return pads;}});
       Object.defineProperty(document,'hasFocus',{configurable:true,value:()=>true});
@@ -48,19 +49,20 @@ module.exports = async function smoke(window) {
       await press(0);check(document.getElementById('overlay').hidden,'Controller did not enter training');
       check(!document.getElementById('reticle').hidden,'Controller crosshair missing');
       virtual.axes[2]=.5;await wait(100);virtual.axes[2]=0;
-      await press(7);check(document.getElementById('feedback').textContent.length>0,'Controller trigger did not shoot');
+      const shotsBefore=observedShots;await press(7);await wait(500);check(observedShots>shotsBefore,'Controller trigger did not shoot');
       check(vibrations.length>0,'Controller vibration missing');
       const stopsBefore=vibrationStops;await press(9);check(!document.getElementById('overlay').hidden,'Controller pause failed');check(vibrationStops>stopsBefore,'Pause did not stop vibration');
       const timer=document.getElementById('timer').textContent;await wait(150);check(document.getElementById('timer').textContent===timer,'Paused controller timer advanced');
       await press(0);check(document.getElementById('overlay').hidden,'Controller resume failed');
       pads=[];await until(()=>!document.getElementById('overlay').hidden,'Disconnect did not pause');
       check(document.getElementById('overlay-body').textContent.includes('手柄'),'Disconnect reason missing');
-      pads=[virtual];virtual.buttons[7]={pressed:true,value:1};await wait(150);
+      pads=[virtual];virtual.buttons[7]={pressed:true,value:1};const reconnectPoll=pollCount;await until(()=>pollCount>reconnectPoll,'Reconnect was not sampled');
       check(!document.getElementById('overlay').hidden,'Reconnect resumed without confirmation');
-      virtual.buttons[7]={pressed:false,value:0};await wait(100);await press(0);
+      virtual.buttons[7]={pressed:false,value:0};const releasePoll=pollCount;await until(()=>pollCount>releasePoll,'Reconnect release was not sampled');await press(0);
       check(document.getElementById('overlay').hidden,'Reconnect recovery failed');
       await press(1);await press(1);check(!document.body.classList.contains('playing'),'Controller return home failed');
     }finally{
+      shotObserver.disconnect();
       for(const [i,[object,key]] of [[navigator,'getGamepads'],[document,'hasFocus'],[document,'hidden']].entries()){
         if(descriptors[i])Object.defineProperty(object,key,descriptors[i]);else delete object[key];
       }
