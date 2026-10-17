@@ -1,10 +1,10 @@
-name: DeepSeek V41 Windows release
+name: Windows desktop release
 
 on:
   push:
-    tags: ['dpsk-v*']
+    tags: ['v*']
   pull_request:
-    paths: ['desktop/**', 'dpsk/**', '.github/workflows/windows-release.yml']
+    paths: ['desktop/**', 'web/**', 'sounds/**', '.github/workflows/windows-release.yml']
   workflow_dispatch:
 
 permissions:
@@ -25,13 +25,14 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Check release version
-        if: startsWith(github.ref, 'refs/tags/dpsk-v')
+        if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         run: |
           $version = (Get-Content desktop/package.json | ConvertFrom-Json).version
-          if ($env:GITHUB_REF_NAME -ne "dpsk-v$version") { throw 'Tag must match desktop/package.json version' }
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag must match desktop/package.json version' }
+      - run: npm --prefix web ci
       - run: npm --prefix desktop ci
-      - run: node dpsk/tests/store.cjs
+      - run: npm --prefix web test
       - run: npm --prefix desktop test
       - name: Build offline Windows installers
         run: npm --prefix desktop run dist
@@ -44,7 +45,7 @@ jobs:
         run: |
           $zip = Get-ChildItem desktop/release/*-Portable.zip | Select-Object -First 1
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath desktop/release/portable-check
-          node desktop/run-smoke.cjs "desktop/release/portable-check/MemeAim 3D-DeepSeek V41.exe"
+          node desktop/run-smoke.cjs "desktop/release/portable-check/MemeAim 3D.exe"
       - name: Compute download checksums
         shell: pwsh
         run: |
@@ -63,7 +64,7 @@ jobs:
           compression-level: 0
 
   release:
-    if: startsWith(github.ref, 'refs/tags/dpsk-v')
+    if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -79,4 +80,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" release/*.exe release/*.zip release/SHA256SUMS.txt --verify-tag --latest=false --title "MemeAim 3D-DeepSeek V41 v${RELEASE_TAG#dpsk-v}" --notes-file desktop/RELEASE_NOTES.md
+          gh release create "$RELEASE_TAG" release/*.exe release/*.zip release/SHA256SUMS.txt --verify-tag --title "MemeAim 3D $RELEASE_TAG" --notes-file desktop/RELEASE_NOTES.md
