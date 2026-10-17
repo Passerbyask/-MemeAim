@@ -3,7 +3,16 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const fs=require('node:fs/promises');
 const os=require('node:os');
-const {assetPath,createAssetHandler}=require('./asset-server.cjs');
+const {assetPath,createAssetHandler,contentPolicy}=require('./asset-server.cjs');
+const {createHash}=require('node:crypto');
+
+test('single-file scripts use normalized exact hashes and local inline media',()=>{
+  const hash=createHash('sha256').update('\nwindow.ok=true;\n').digest('base64');
+  const policy=contentPolicy(Buffer.from('<script>\r\nwindow.ok=true;\r\n</script>'));
+  const scripts=policy.split(';').map(p=>p.trim()).find(p=>p.startsWith('script-src'));
+  assert.ok(scripts.includes("'sha256-"+hash+"'"));assert.ok(!scripts.includes('unsafe-inline')&&!scripts.includes('unsafe-eval'));
+  assert.ok(policy.includes("media-src 'self' data: blob:"));
+});
 test('packaged origin cannot read outside assets',()=>{
   const root=path.resolve('assets');
   assert.equal(assetPath(root,'memeaim://app/'),path.join(root,'index.html'));
