@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#040810">
+  <meta name="description" content="MEMEAIM 3D-DeepSeek V41 —— 六种模式的第一人称浏览器瞄准训练器。无需安装，打开即练。">
+  <title>MEMEAIM 3D-DeepSeek V41 · 网页瞄准训练器</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23050b14'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%232ce8ff' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='6' fill='none' stroke='%232ce8ff' stroke-width='2.5'/%3E%3Cpath d='M32 6v12M32 46v12M6 32h12M46 32h12' stroke='%232ce8ff' stroke-width='2.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css" data-build="inline">
+  <link rel="stylesheet" href="styles-meme.css" data-build="inline">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-reticle" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="15.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="24" cy="24" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M24 2v11M24 35v11M2 24h11M35 24h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="1.7" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M19.1 13.4c.1-.5.1-1 0-1.5l1.7-1.3-1.9-3.2-2 .8c-.4-.3-.8-.5-1.2-.7l-.3-2.2h-3.7l-.3 2.2c-.4.2-.8.4-1.2.7l-2-.8-1.9 3.2L8 11.9c-.1.5-.1 1 0 1.5l-1.7 1.3 1.9 3.2 2-.8c.4.3.8.5 1.2.7l.3 2.2h3.7l.3-2.2c.4-.2.8-.4 1.2-.7l2 .8 1.9-3.2-1.7-1.3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24">
+      <path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4v-5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M15.5 9a4.4 4.4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-volume-off" viewBox="0 0 24 24">
+      <path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4v-5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="m15.5 9 5 5M20.5 9l-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24">
+      <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="M8.5 5.5 19 12 8.5 18.5v-13Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24">
+      <path d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-share" viewBox="0 0 24 24">
+      <circle cx="6" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="17.5" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="17.5" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m8.2 10.9 7-3.6M8.2 13.1l7 3.6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24">
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4 9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M4 4.5v5h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24">
+      <path d="M13.5 2.5 5.5 13H11l-1 8.5L18.5 11H13l.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24">
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M8 5.5H4.5V7a3.5 3.5 0 0 0 3.5 3.5M16 5.5h3.5V7A3.5 3.5 0 0 1 16 10.5M12 13v4M8.5 20h7M10 17h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-target" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="12" cy="12" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24">
+      <rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div id="app" class="app">
+
+    <!-- ══════════════════════════ 主菜单 ══════════════════════════ -->
+    <section id="screen-menu" class="screen screen-menu active" data-screen="menu">
+      <div class="ambient" aria-hidden="true">
+        <div class="ambient-glow glow-a"></div>
+        <div class="ambient-glow glow-b"></div>
+        <div class="ambient-floor"></div>
+        <div class="ambient-grid"></div>
+        <div class="ambient-horizon"></div>
+        <div class="ambient-ring ring-a"></div>
+        <div class="ambient-ring ring-b"></div>
+        <div class="ambient-reticle"><i></i><i></i><i></i><i></i></div>
+        <div class="ambient-scanlines"></div>
+        <div class="ambient-noise"></div>
+      </div>
+
+      <div class="menu-shell">
+        <header class="site-header">
+          <a class="brand" href="#" aria-label="MEMEAIM 3D-DeepSeek V41 首页" data-brand-home>
+            <span class="brand-mark">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-reticle"/></svg>
+            </span>
+            <span class="brand-copy">
+              <span class="brand-name">MEME<span>AIM</span><em>3D</em></span>
+              <span class="brand-sub">DEEPSEEK V41 · NEURAL AIM TRAINING SYSTEM</span>
+            </span>
+          </a>
+          <div class="header-actions">
+            <span class="status-pill"><i></i>LOCAL · 数据仅存本机</span>
+            <span class="hdr-chip" id="hdr-chip" hidden title="检测到 HDR / 广色域屏幕时自动启用高光增强">HDR · P3</span>
+            <button class="icon-btn" id="menu-sound-btn" type="button" aria-label="切换音效" title="音效开关 (M)">
+              <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-volume"/></svg>
+              <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-volume-off"/></svg>
+            </button>
+            <button class="icon-btn" id="menu-fullscreen-btn" type="button" aria-label="切换全屏" title="全屏 (F)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-expand"/></svg>
+            </button>
+            <button class="btn btn-ghost btn-sm meme-entry-btn" type="button" data-open-settings data-settings-tab="meme" title="节目效果设置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bolt"/></svg>
+              整活
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" data-open-settings>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-settings"/></svg>
+              设置
+            </button>
+          </div>
+        </header>
+
+        <main class="menu-main">
+          <div class="menu-primary">
+            <section class="hero">
+              <div class="hero-reticle" aria-hidden="true">
+                <span class="hero-reticle-ring hero-reticle-ring-a"></span>
+                <span class="hero-reticle-ring hero-reticle-ring-b"></span>
+                <span class="hero-reticle-tick hero-reticle-tick-t"></span>
+                <span class="hero-reticle-tick hero-reticle-tick-r"></span>
+                <span class="hero-reticle-tick hero-reticle-tick-b"></span>
+                <span class="hero-reticle-tick hero-reticle-tick-l"></span>
+                <span class="hero-reticle-dot"></span>
+              </div>
+              <div class="eyebrow hero-eyebrow"><span></span>NEURAL AIM TRAINING // V1.0</div>
+              <h1 class="hero-title">把准星<br>练成<span class="text-accent">肌肉记忆</span><b class="hero-caret">_</b></h1>
+              <p class="hero-desc">六种训练模式，覆盖点击、甩枪与跟枪。实时数据反馈，记录每一次微小进步。<span>无需安装 · 打开即练</span></p>
+              <div class="hero-actions">
+                <button class="btn btn-primary btn-lg" id="quick-start" type="button">
+                  <span class="btn-play"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-play"/></svg></span>
+                  <span class="btn-copy"><b>快速开始</b><small id="quick-start-mode">GRIDSHOT · 60S</small></span>
+                  <kbd>↵</kbd>
+                </button>
+                <button class="btn btn-outline btn-lg" id="scroll-modes" type="button">
+                  选择训练模式
+                  <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg>
+                </button>
+              </div>
+              <div class="hero-stats">
+                <div class="hero-stat"><span>TOTAL RUNS</span><b id="stat-runs">0</b><small>累计训练</small></div>
+                <div class="hero-stat"><span>BEST SCORE</span><b id="stat-best">0</b><small>历史最高</small></div>
+                <div class="hero-stat"><span>AVG ACCURACY</span><b id="stat-acc">--</b><small>平均命中</small></div>
+              </div>
+            </section>
+
+            <section class="modes-section" id="modes">
+              <div class="section-head">
+                <div>
+                  <div class="eyebrow"><span></span>SELECT TASK</div>
+                  <h2>训练模式<span class="h2-dot">.</span></h2>
+                </div>
+                <div class="section-meta"><b>06</b> MODES · 本地记录</div>
+              </div>
+              <div class="mode-grid" id="mode-grid" aria-label="训练模式列表">
+                <!-- ui.js 动态生成模式卡 -->
+              </div>
+              <noscript><p class="noscript">需要启用 JavaScript 才能运行训练。</p></noscript>
+            </section>
+          </div>
+
+          <aside class="menu-aside">
+            <section class="aside-panel">
+              <div class="panel-head">
+                <span>最近训练</span>
+                <span class="mono">RECENT</span>
+              </div>
+              <div class="recent-runs" id="recent-runs">
+                <div class="empty-state">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-target"/></svg>
+                  <b>还没有训练记录</b>
+                  <span>选择上方模式，开始第一轮。</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="aside-panel">
+              <div class="panel-head">
+                <span>个人最佳</span>
+                <span class="mono">TOP RUNS</span>
+              </div>
+              <div class="top-runs" id="top-runs">
+                <div class="empty-state empty-state-sm">
+                  <b>等待第一条数据</b>
+                  <span>本机记录，不会上传。</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="aside-panel tip-panel">
+              <div class="tip-title">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bolt"/></svg>
+                训练提示
+              </div>
+              <p id="menu-tip">先求稳，再求快。把准星放在目标中心附近，连击倍率会放大你的每一次命中。</p>
+              <div class="tip-foot">
+                <span>准星不顺手？</span>
+                <button class="text-btn" type="button" data-open-settings data-settings-tab="crosshair">自定义准星 <span>→</span></button>
+              </div>
+            </section>
+
+            <section class="aside-quote" aria-hidden="true">
+              <span class="quote-mark">“</span>
+              <p>Aim is a skill.<br>Precision is a habit.</p>
+              <span class="quote-line"></span>
+            </section>
+          </aside>
+        </main>
+
+        <footer class="site-footer">
+          <div class="footer-brand"><span>MEMEAIM</span> 3D-DEEPSEEK · FAN-MADE TRAINING SIM</div>
+          <div class="footer-keys"><kbd>1</kbd>–<kbd>6</kbd> 选择模式 <kbd>ENTER</kbd> 快速开始 <kbd>S</kbd> 设置 <kbd>M</kbd> 静音 <kbd>F</kbd> 全屏</div>
+          <div class="footer-meta">LOCAL DATA ONLY · V1.0.0</div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════ 游戏 ══════════════════════════ -->
+    <section id="screen-game" class="screen screen-game" data-screen="game">
+      <canvas id="game-canvas" aria-label="瞄准训练区域"></canvas>
+
+      <!-- 第一人称持枪视图：纯 SVG / 代码绘制，不依赖任何外部模型文件 -->
+      <div id="weapon-view" class="weapon-view" aria-hidden="true">
+        <svg class="weapon-svg" viewBox="0 0 1000 560" role="presentation">
+          <defs>
+            <linearGradient id="wpn-steel" x1="260" y1="240" x2="700" y2="500" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#71838f"/>
+              <stop offset="0.18" stop-color="#3a4a56"/>
+              <stop offset="0.52" stop-color="#1b2630"/>
+              <stop offset="0.82" stop-color="#0d141b"/>
+              <stop offset="1" stop-color="#070b10"/>
+            </linearGradient>
+            <linearGradient id="wpn-dark" x1="240" y1="260" x2="560" y2="480" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#34434f"/>
+              <stop offset="0.45" stop-color="#151f27"/>
+              <stop offset="1" stop-color="#080d12"/>
+            </linearGradient>
+            <linearGradient id="wpn-grip" x1="620" y1="440" x2="720" y2="550" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2d3a45"/>
+              <stop offset="0.55" stop-color="#141d25"/>
+              <stop offset="1" stop-color="#060a0e"/>
+            </linearGradient>
+            <linearGradient id="wpn-glove" x1="260" y1="290" x2="380" y2="390" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#425360"/>
+              <stop offset="0.35" stop-color="#22303a"/>
+              <stop offset="1" stop-color="#0b1117"/>
+            </linearGradient>
+            <linearGradient id="wpn-accent" x1="230" y1="260" x2="720" y2="410" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2ce8ff" stop-opacity="0.1"/>
+              <stop offset="0.45" stop-color="#2ce8ff" stop-opacity="0.9"/>
+              <stop offset="1" stop-color="#9b8cff" stop-opacity="0.2"/>
+            </linearGradient>
+            <radialGradient id="wpn-lens" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#eaffff"/>
+              <stop offset="0.3" stop-color="#2ce8ff" stop-opacity="0.95"/>
+              <stop offset="0.7" stop-color="#147a9a" stop-opacity="0.55"/>
+              <stop offset="1" stop-color="#07121b" stop-opacity="0.9"/>
+            </radialGradient>
+            <radialGradient id="wpn-flash" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#fffdf0" stop-opacity="1"/>
+              <stop offset="0.25" stop-color="#ffd979" stop-opacity="0.95"/>
+              <stop offset="0.58" stop-color="#ff8a27" stop-opacity="0.45"/>
+              <stop offset="1" stop-color="#ff6a00" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="wpn-glow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="3.2" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <filter id="wpn-soft" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="1.2"/>
+            </filter>
+          </defs>
+
+          <g class="weapon-idle">
+            <!-- 枪身环境阴影 -->
+            <ellipse cx="570" cy="478" rx="380" ry="84" fill="#000" opacity="0.3" filter="url(#wpn-soft)"/>
+
+            <!-- 枪托 -->
+            <path d="M728 344 L958 408 L984 484 L718 428 Z" fill="url(#wpn-steel)" stroke="#080d12" stroke-width="2.5"/>
+            <path d="M765 374 L940 424 L952 462 L746 408 Z" fill="#080d12" opacity="0.55"/>
+            <path d="M862 416 L960 448" stroke="#9db1bf" stroke-opacity="0.28" stroke-width="2"/>
+            <path d="M792 386 L887 416" stroke="#9db1bf" stroke-opacity="0.16" stroke-width="1.5"/>
+
+            <!-- 机匣 -->
+            <path d="M452 298 L772 378 L748 468 L430 390 Z" fill="url(#wpn-steel)" stroke="#080d12" stroke-width="2.5"/>
+            <path d="M482 326 L722 383 L712 426 L470 369 Z" fill="#0a1117" opacity="0.5"/>
+            <path d="M582 360 L740 402" stroke="#a9bfcd" stroke-opacity="0.25" stroke-width="1.4"/>
+
+            <!-- 顶部导轨 -->
+            <path d="M246 240 L540 306 L531 330 L237 264 Z" fill="#1a252e" stroke="#070c10" stroke-width="2"/>
+            <path d="M266 247 l5 10 M296 254 l5 10 M326 262 l5 10 M356 270 l5 10 M386 278 l5 10 M416 286 l5 10 M446 294 l5 10" stroke="#566a79" stroke-opacity="0.6" stroke-width="2"/>
+
+            <!-- 护木 -->
+            <path d="M230 256 L484 313 L462 374 L212 313 Z" fill="url(#wpn-dark)" stroke="#070c10" stroke-width="2.2"/>
+            <path d="M266 285 l10 46 M310 297 l10 46 M354 308 l10 46 M398 320 l10 46" stroke="#05090d" stroke-width="8" stroke-linecap="round"/>
+            <path d="M242 272 L460 323" stroke="#9db5c5" stroke-opacity="0.2" stroke-width="1.4"/>
+
+            <!-- 枪管 / 枪口制退器 -->
+            <path d="M30 192 L248 238 L244 263 L26 218 Z" fill="#1b252e" stroke="#070c10" stroke-width="2"/>
+            <path d="M0 177 L58 191 L54 226 L0 211 Z" fill="#131d25" stroke="#536a7a" stroke-width="1.5"/>
+            <ellipse cx="16" cy="194" rx="9" ry="12" fill="#04070a" stroke="#334a5a" stroke-width="1"/>
+
+            <!-- 弹匣 -->
+            <path d="M514 381 C556 391 588 410 600 434 L576 526 C548 528 523 516 510 497 Z" fill="url(#wpn-dark)" stroke="#070c10" stroke-width="2"/>
+            <path d="M530 402 l12 91 M551 409 l11 91 M572 419 l8 82" stroke="#05090d" stroke-width="5" stroke-linecap="round"/>
+            <path d="M520 456 L585 471" stroke="#6f8798" stroke-opacity="0.22" stroke-width="1.5"/>
+
+            <!-- 握把 -->
+            <path d="M638 438 L712 457 L688 553 L610 530 Z" fill="url(#wpn-grip)" stroke="#070c10" stroke-width="2"/>
+            <path d="M648 466 l54 14 M644 487 l52 13 M640 508 l49 12 M636 527 l46 11" stroke="#05090d" stroke-width="3" stroke-linecap="round"/>
+            <path d="M638 447 l58 15" stroke="#a6bdcb" stroke-opacity="0.2" stroke-width="1.2"/>
+
+            <!-- 扳机护圈 / 扳机 -->
+            <path d="M584 446 C622 461 653 474 680 493" fill="none" stroke="#24323d" stroke-width="9" stroke-linecap="round"/>
+            <path d="M625 470 q13 18 4 35" fill="none" stroke="#b0c6d5" stroke-opacity="0.7" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- 全息瞄具 -->
+            <path d="M314 220 L450 252 L443 276 L307 244 Z" fill="#111a21" stroke="#070c10" stroke-width="2"/>
+            <path d="M330 182 L426 206 L418 249 L322 225 Z" fill="#0a1218" stroke="#3b4f5d" stroke-width="2.4"/>
+            <ellipse cx="374" cy="214" rx="30" ry="18" fill="url(#wpn-lens)" stroke="#2ce8ff" stroke-opacity="0.8" stroke-width="1.6" filter="url(#wpn-glow)" transform="rotate(14 374 214)"/>
+            <path d="M374 205 v18 M366 214 h17" stroke="#f4ffff" stroke-opacity="0.8" stroke-width="1.2"/>
+
+            <!-- 枪身科技细节 -->
+            <path d="M458 328 L724 397" fill="none" stroke="url(#wpn-accent)" stroke-width="2.6"/>
+            <path d="M246 264 L452 316" fill="none" stroke="#2ce8ff" stroke-opacity="0.22" stroke-width="1.5"/>
+            <circle cx="620" cy="365" r="5" fill="#101a22" stroke="#5c7485" stroke-opacity="0.45"/>
+            <circle cx="648" cy="373" r="5" fill="#101a22" stroke="#5c7485" stroke-opacity="0.45"/>
+            <path d="M676 350 l20 5" stroke="#ffd166" stroke-opacity="0.5" stroke-width="2"/>
+
+            <!-- 左手（护木） -->
+            <g class="weapon-hand weapon-hand-left">
+              <path d="M248 302 C278 286 328 298 360 318 L405 354 C392 392 350 408 311 392 L254 352 Z" fill="url(#wpn-glove)" stroke="#070c10" stroke-width="2.2"/>
+              <path d="M292 318 C318 309 342 320 356 340" fill="none" stroke="#8fa6b6" stroke-opacity="0.22" stroke-width="2"/>
+              <path d="M286 336 C316 328 338 338 350 354 M280 355 C310 347 332 356 344 371 M276 374 C304 367 326 376 336 390" fill="none" stroke="#05090d" stroke-width="5" stroke-linecap="round"/>
+              <path d="M236 344 L268 386 L232 402 L205 360 Z" fill="#0a1117" stroke="#314552" stroke-opacity="0.4" stroke-width="1.5"/>
+              <path d="M248 334 L274 366" stroke="#2ce8ff" stroke-opacity="0.44" stroke-width="2"/>
+            </g>
+
+            <!-- 右手（握把） -->
+            <g class="weapon-hand weapon-hand-right">
+              <path d="M650 458 C688 438 738 452 762 488 L774 548 C742 576 694 570 662 540 Z" fill="url(#wpn-glove)" stroke="#070c10" stroke-width="2.2"/>
+              <path d="M682 472 C716 463 742 480 748 506" fill="none" stroke="#8fa6b6" stroke-opacity="0.2" stroke-width="2"/>
+              <path d="M666 500 C700 490 724 502 734 522 M660 521 C694 512 718 522 728 544 M658 542 C688 535 710 544 720 562" fill="none" stroke="#05090d" stroke-width="6" stroke-linecap="round"/>
+              <path d="M718 456 C744 437 780 450 796 484 L804 548 C776 574 736 572 712 550 Z" fill="url(#wpn-glove)" stroke="#070c10" stroke-width="2" opacity="0.9"/>
+              <path d="M742 483 L798 500" stroke="#2ce8ff" stroke-opacity="0.35" stroke-width="2"/>
+              <path d="M714 552 L790 570 L782 608 L700 588 Z" fill="#080d12" stroke="#2d3e4a" stroke-opacity="0.5" stroke-width="1.5"/>
+            </g>
+
+            <!-- 铭牌与装饰字 -->
+            <text x="544" y="408" fill="#d3e7f4" fill-opacity="0.45" font-family="'Cascadia Mono', Consolas, monospace" font-size="11" letter-spacing="2">VX-09 // 6.8</text>
+            <text x="868" y="456" fill="#d3e7f4" fill-opacity="0.3" font-family="'Cascadia Mono', Consolas, monospace" font-size="8" letter-spacing="1.6">MEMEAIM 3D</text>
+
+            <!-- 枪口焰 -->
+            <g class="weapon-flash" filter="url(#wpn-glow)">
+              <circle cx="16" cy="194" r="58" fill="url(#wpn-flash)"/>
+              <path d="M16 194 L82 164 L48 192 L94 200 L40 208 L74 236 L16 212L-42 236 L-20 206 L-62 188 L-12 190 Z" fill="#fff6cf" fill-opacity="0.92"/>
+              <circle cx="16" cy="194" r="15" fill="#fffdf4"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="game-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+      <div class="hud" id="game-hud">
+        <div class="hud-top">
+          <div class="hud-mode">
+            <span class="hud-label">CURRENT TASK</span>
+            <div class="hud-mode-name"><span id="hud-mode-en" class="mono">GRIDSHOT</span><span id="hud-mode-name">网格速射</span></div>
+          </div>
+          <div class="hud-timer" id="hud-timer-wrap">
+            <div class="hud-timer-value"><span id="hud-timer">60.0</span><small>SEC</small></div>
+            <div class="hud-timer-track"><i id="hud-progress"></i></div>
+            <span class="hud-label">TIME REMAINING</span>
+          </div>
+          <div class="hud-right">
+            <div class="hud-score-block"><span class="hud-label">SCORE</span><b id="hud-score">0</b></div>
+            <button class="icon-btn hud-pause-btn" id="hud-pause" type="button" aria-label="暂停" title="暂停 (ESC)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pause"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="hud-side">
+          <div class="hud-stat"><span class="hud-label">ACCURACY</span><b id="hud-acc">100%</b></div>
+          <div class="hud-stat"><span class="hud-label" id="hud-hits-label">HITS</span><b id="hud-hits">0</b></div>
+          <div class="hud-stat"><span class="hud-label">STREAK</span><b id="hud-streak">0</b></div>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="hud-meta"><span id="hud-aim-mode">RELATIVE AIM</span><span>ESC PAUSE</span><span id="hud-meme-state" class="hud-meme-state">MEME FX</span></div>
+          <div class="hud-combo hidden" id="hud-combo">
+            <span>COMBO</span>
+            <b id="hud-combo-mult">×1.0</b>
+            <i class="hud-combo-track"><em id="hud-combo-fill"></em></i>
+          </div>
+          <div class="hud-hint" id="hud-hint">移动瞄准 · 左键射击</div>
+        </div>
+      </div>
+
+      <div class="countdown hidden" id="countdown" aria-live="assertive">
+        <span class="countdown-label" id="countdown-label">GET READY</span>
+        <b class="countdown-value" id="countdown-value">3</b>
+        <span class="countdown-sub">TARGETS ONLINE IN</span>
+      </div>
+
+      <div class="overlay hidden" id="pause-overlay">
+        <div class="overlay-backdrop"></div>
+        <div class="pause-panel">
+          <div class="eyebrow"><span></span>SESSION PAUSED</div>
+          <h2>训练已暂停</h2>
+          <p id="pause-desc">计时已冻结。调整呼吸，继续。</p>
+          <div class="pause-actions">
+            <button class="btn btn-primary btn-lg" id="pause-resume" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-play"/></svg>
+              继续训练 <kbd>ESC</kbd>
+            </button>
+            <button class="btn btn-outline" id="pause-restart" type="button">重新开始</button>
+            <button class="btn btn-ghost" id="pause-quit" type="button">退出到大厅</button>
+          </div>
+          <div class="pause-meta mono">
+            <span>SCORE <b id="pause-score">0</b></span>
+            <span>TIME LEFT <b id="pause-time">60.0</b></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════ 结算 ══════════════════════════ -->
+    <section id="screen-results" class="screen screen-results" data-screen="results">
+      <div class="ambient" aria-hidden="true">
+        <div class="ambient-glow glow-a"></div>
+        <div class="ambient-glow glow-b"></div>
+        <div class="ambient-floor"></div>
+        <div class="ambient-grid"></div>
+        <div class="ambient-horizon"></div>
+        <div class="ambient-scanlines"></div>
+        <div class="ambient-noise"></div>
+      </div>
+
+      <div class="results-shell">
+        <header class="results-header">
+          <div class="brand brand-sm">
+            <span class="brand-mark">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-reticle"/></svg>
+            </span>
+            <span class="brand-copy">
+              <span class="brand-name">AIM<span>LAB</span><em>WEB</em></span>
+              <span class="brand-sub">PERFORMANCE REPORT</span>
+            </span>
+          </div>
+          <div class="results-header-meta">
+            <span class="status-pill"><i></i>RANK UPDATED</span>
+            <span class="mono" id="result-date">--/-- --:--</span>
+          </div>
+        </header>
+
+        <main class="results-main">
+          <section class="result-summary">
+            <div class="result-kicker">
+              <span class="mono" id="result-mode-en">GRIDSHOT</span>
+              <span class="kicker-divider">/</span>
+              <span id="result-mode-name">网格速射</span>
+            </div>
+            <div class="grade-wrap">
+              <svg class="grade-ring" viewBox="0 0 240 240" aria-hidden="true">
+                <circle class="grade-ring-track" cx="120" cy="120" r="106"/>
+                <circle class="grade-ring-ticks" cx="120" cy="120" r="116" stroke-dasharray="2 10"/>
+                <circle class="grade-ring-accent" cx="120" cy="120" r="106" id="result-grade-ring"/>
+              </svg>
+              <div class="grade-inner">
+                <span class="grade-value" id="result-grade">B</span>
+                <span class="grade-label">RANK</span>
+              </div>
+              <div class="new-best hidden" id="new-best">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trophy"/></svg>
+                NEW RECORD
+              </div>
+            </div>
+            <div class="result-title-wrap">
+              <span class="result-title-kicker">PERFORMANCE</span>
+              <h1 class="result-title" id="result-title">稳定发挥</h1>
+              <p class="result-subtitle" id="result-subtitle">这一轮的准星状态不错，再来一局继续升温。</p>
+            </div>
+            <div class="result-score">
+              <span id="result-score">0</span>
+              <small>SCORE</small>
+            </div>
+            <div class="result-score-note" id="result-score-note">PERSONAL BEST · 0</div>
+            <div class="result-actions">
+              <button class="btn btn-primary btn-lg" id="results-retry" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reset"/></svg>
+                再来一局 <kbd>R</kbd>
+              </button>
+              <button class="btn btn-outline" id="results-menu" type="button">返回大厅 <kbd>ESC</kbd></button>
+              <button class="btn btn-ghost icon-only" id="results-share" type="button" aria-label="分享成绩" title="复制成绩">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-share"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <section class="result-details">
+            <div class="panel-head">
+              <span>数据回放</span>
+              <span class="mono">PERFORMANCE DATA</span>
+            </div>
+            <div class="result-stats" id="result-stats"><!-- ui.js 渲染 --></div>
+            <div class="chart-panel">
+              <div class="chart-head">
+                <span>每秒得分</span>
+                <span class="mono" id="result-chart-meta">SCORE / SEC</span>
+              </div>
+              <canvas id="result-chart" width="640" height="190"></canvas>
+            </div>
+            <div class="rank-progress">
+              <div class="rank-progress-head">
+                <span>评级进度</span>
+                <b id="result-rank-note">距下一评级 --</b>
+              </div>
+              <div class="rank-track"><i id="result-rank-bar"></i></div>
+              <div class="rank-scale mono"><span class="rank-scale-d">D</span><span class="rank-scale-c">C</span><span class="rank-scale-b">B</span><span class="rank-scale-a">A</span><span class="rank-scale-s">S</span></div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="site-footer">
+          <div class="footer-brand"><span>MEMEAIM</span> 3D-DEEPSEEK · ROUND COMPLETE</div>
+          <div class="footer-keys"><kbd>R</kbd> 再来一局 <kbd>ESC</kbd> 返回大厅 <kbd>SHARE</kbd> 复制成绩</div>
+          <div class="footer-meta">ALL DATA STORED LOCALLY</div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- 梗音效 / 绿幕梗 / 全屏特效 / 表情包图层（pointer-events:none） -->
+    <div id="meme-layer" class="meme-layer" aria-hidden="true"></div>
+
+    <!-- ══════════════════════════ 设置弹窗 ══════════════════════════ -->
+    <div class="modal hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-backdrop" data-close-settings></div>
+      <div class="modal-panel settings-panel">
+        <header class="modal-head">
+          <div>
+            <div class="eyebrow"><span></span>SYSTEM CONFIG</div>
+            <h2 id="settings-title">设置</h2>
+          </div>
+          <div class="modal-head-actions">
+            <span class="autosave-tag"><i></i>自动保存</span>
+            <button class="icon-btn" type="button" data-close-settings aria-label="关闭设置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-close"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="settings-layout">
+          <nav class="settings-nav" aria-label="设置分类">
+            <button class="settings-tab active" type="button" data-tab="controls"><span>01</span>操作</button>
+            <button class="settings-tab" type="button" data-tab="crosshair"><span>02</span>准星</button>
+            <button class="settings-tab" type="button" data-tab="audio"><span>03</span>音效</button>
+            <button class="settings-tab" type="button" data-tab="data"><span>04</span>数据</button>
+            <button class="settings-tab meme-tab" type="button" data-tab="meme"><span>05</span>整活</button>
+            <div class="settings-nav-foot">
+              <span>MEMEAIM 3D-DEEPSEEK</span>
+              <span class="mono">v1.0.0 / LOCAL</span>
+            </div>
+          </nav>
+
+          <div class="settings-panes">
+            <!-- 操作 -->
+            <section class="settings-pane active" data-pane="controls">
+              <div class="pane-title">
+                <h3>操作与瞄准</h3>
+                <p>调整手感。设置自动保存，下一轮立即生效。</p>
+              </div>
+
+              <div class="setting-group">
+                <div class="setting-label-row">
+                  <label>鼠标模式</label>
+                  <span class="mono">AIM MODE</span>
+                </div>
+                <div class="segmented" id="aim-mode-row">
+                  <button class="seg-btn active" type="button" data-aim-mode="relative">
+                    <b>相对瞄准</b><small>FPS 手感 · 指针锁定</small>
+                  </button>
+                  <button class="seg-btn" type="button" data-aim-mode="absolute">
+                    <b>绝对瞄准</b><small>准星跟随鼠标</small>
+                  </button>
+                </div>
+                <p class="setting-hint">相对模式会锁定指针并进入第一人称视角：移动鼠标转动视角，按 <kbd>ESC</kbd> 暂停并释放鼠标；移动端自动使用绝对模式。</p>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label for="set-sensitivity">灵敏度</label>
+                  <span>视角转动倍率，仅相对模式生效</span>
+                </div>
+                <div class="range-control">
+                  <input id="set-sensitivity" type="range" min="0.2" max="3" step="0.05" value="1">
+                  <output id="set-sens-value">1.00</output>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label for="set-target-scale">靶子大小</label>
+                  <span>影响所有模式的判定半径</span>
+                </div>
+                <div class="range-control">
+                  <input id="set-target-scale" type="range" min="0.7" max="1.4" step="0.05" value="1">
+                  <output id="set-target-value">1.00×</output>
+                </div>
+              </div>
+
+              <div class="toggle-row">
+                <div class="setting-label">
+                  <label for="set-effects">画面特效</label>
+                  <span>粒子、命中震屏与背景网格流动</span>
+                </div>
+                <label class="switch">
+                  <input id="set-effects" type="checkbox" checked>
+                  <span class="switch-track"><i></i></span>
+                </label>
+              </div>
+
+              <div class="toggle-row">
+                <div class="setting-label">
+                  <label for="set-hdr">HDR 高光</label>
+                  <span id="set-hdr-note">支持的显示器上启用峰值高光和广色域</span>
+                </div>
+                <label class="switch">
+                  <input id="set-hdr" type="checkbox" checked>
+                  <span class="switch-track"><i></i></span>
+                </label>
+              </div>
+
+              <div class="keymap">
+                <div class="keymap-title">快捷键</div>
+                <div class="keymap-grid">
+                  <span><kbd>ESC</kbd>暂停 / 释放鼠标</span>
+                  <span><kbd>M</kbd>静音</span>
+                  <span><kbd>F</kbd>全屏</span>
+                  <span><kbd>1</kbd>–<kbd>6</kbd>选择模式</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- 准星 -->
+            <section class="settings-pane" data-pane="crosshair">
+              <div class="pane-title">
+                <h3>准星编辑器</h3>
+                <p>找到最不遮挡目标、又一眼可见的形状。</p>
+              </div>
+
+              <div class="crosshair-stage">
+                <canvas id="crosshair-preview" width="640" height="240"></canvas>
+                <span class="stage-label mono">LIVE PREVIEW</span>
+                <span class="stage-coords mono">AIM CENTER · 50 / 50</span>
+                <div class="stage-scan"></div>
+              </div>
+
+              <div class="setting-group">
+                <div class="setting-label-row">
+                  <label>准星样式</label>
+                  <span class="mono">STYLE</span>
+                </div>
+                <div class="ch-style-grid" id="ch-style-row">
+                  <button class="ch-style-btn active" type="button" data-ch-style="cross"><span class="ch-shape ch-shape-cross"></span><b>十字</b></button>
+                  <button class="ch-style-btn" type="button" data-ch-style="dot"><span class="ch-shape ch-shape-dot"></span><b>圆点</b></button>
+                  <button class="ch-style-btn" type="button" data-ch-style="ring"><span class="ch-shape ch-shape-ring"></span><b>圆环</b></button>
+                  <button class="ch-style-btn" type="button" data-ch-style="t"><span class="ch-shape ch-shape-t"></span><b>T 型</b></button>
+                  <button class="ch-style-btn" type="button" data-ch-style="x"><span class="ch-shape ch-shape-x"></span><b>X 型</b></button>
+                </div>
+              </div>
+
+              <div class="setting-group">
+                <div class="setting-label-row">
+                  <label>颜色</label>
+                  <span class="mono">COLOR</span>
+                </div>
+                <div class="swatch-row" id="ch-color-row">
+                  <button class="swatch active" type="button" data-ch-color="#2ce8ff" style="--swatch:#2ce8ff" aria-label="青色"></button>
+                  <button class="swatch" type="button" data-ch-color="#c4f74c" style="--swatch:#c4f74c" aria-label="青柠"></button>
+                  <button class="swatch" type="button" data-ch-color="#ff63a9" style="--swatch:#ff63a9" aria-label="品红"></button>
+                  <button class="swatch" type="button" data-ch-color="#ffb454" style="--swatch:#ffb454" aria-label="橙色"></button>
+                  <button class="swatch" type="button" data-ch-color="#ffffff" style="--swatch:#ffffff" aria-label="白色"></button>
+                  <button class="swatch" type="button" data-ch-color="#ff5470" style="--swatch:#ff5470" aria-label="红色"></button>
+                  <label class="swatch swatch-custom" title="自定义颜色">
+                    <input id="set-ch-color" type="color" value="#2ce8ff" aria-label="自定义准星颜色">
+                    <span>+</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-row compact">
+                <div class="setting-label"><label for="set-ch-size">尺寸</label><span>SIZE</span></div>
+                <div class="range-control">
+                  <input id="set-ch-size" type="range" min="6" max="30" step="1" value="14">
+                  <output id="ch-size-value">14</output>
+                </div>
+              </div>
+              <div class="setting-row compact">
+                <div class="setting-label"><label for="set-ch-thickness">粗细</label><span>THICKNESS</span></div>
+                <div class="range-control">
+                  <input id="set-ch-thickness" type="range" min="1" max="6" step="0.5" value="2">
+                  <output id="ch-thickness-value">2.0</output>
+                </div>
+              </div>
+              <div class="setting-row compact">
+                <div class="setting-label"><label for="set-ch-gap">间隔</label><span>GAP</span></div>
+                <div class="range-control">
+                  <input id="set-ch-gap" type="range" min="0" max="14" step="1" value="4">
+                  <output id="ch-gap-value">4</output>
+                </div>
+              </div>
+              <div class="setting-row compact">
+                <div class="setting-label"><label for="set-ch-opacity">透明度</label><span>OPACITY</span></div>
+                <div class="range-control">
+                  <input id="set-ch-opacity" type="range" min="0.2" max="1" step="0.05" value="0.95">
+                  <output id="ch-opacity-value">95%</output>
+                </div>
+              </div>
+
+              <div class="toggle-row">
+                <div class="setting-label">
+                  <label for="set-ch-outline">黑色描边</label>
+                  <span>在亮背景上更容易辨认准星</span>
+                </div>
+                <label class="switch">
+                  <input id="set-ch-outline" type="checkbox" checked>
+                  <span class="switch-track"><i></i></span>
+                </label>
+              </div>
+
+              <button class="btn btn-ghost btn-sm reset-crosshair" type="button" id="reset-crosshair">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reset"/></svg>
+                恢复默认准星
+              </button>
+            </section>
+
+            <!-- 音效 -->
+            <section class="settings-pane" data-pane="audio">
+              <div class="pane-title">
+                <h3>音效</h3>
+                <p>用声音确认每一次命中。所有音效由浏览器实时合成。</p>
+              </div>
+              <div class="toggle-row">
+                <div class="setting-label">
+                  <label for="set-audio-enabled">启用音效</label>
+                  <span>命中、失误、连击与倒计时提示音</span>
+                </div>
+                <label class="switch">
+                  <input id="set-audio-enabled" type="checkbox" checked>
+                  <span class="switch-track"><i></i></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label for="set-audio-volume">音量</label>
+                  <span>主音量</span>
+                </div>
+                <div class="range-control">
+                  <input id="set-audio-volume" type="range" min="0" max="1" step="0.01" value="0.7">
+                  <output id="set-volume-value">70%</output>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm sound-test" type="button" id="test-sound">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-volume"/></svg>
+                试听命中音效
+              </button>
+              <div class="audio-visual" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="setting-hint">训练时按 <kbd>M</kbd> 可快速静音。首次点击页面后浏览器才允许播放声音。</p>
+            </section>
+
+            <!-- 数据 -->
+            <section class="settings-pane" data-pane="data">
+              <div class="pane-title">
+                <h3>本地数据</h3>
+                <p>成绩只保存在这台设备的浏览器里，不会上传到任何服务器。</p>
+              </div>
+              <div class="storage-card">
+                <div>
+                  <span class="mono">LOCAL STORAGE</span>
+                  <b>本机记录</b>
+                </div>
+                <div class="storage-value" id="data-storage">0 KB</div>
+              </div>
+              <div class="data-row">
+                <div class="setting-label">
+                  <label>清除训练记录</label>
+                  <span>删除全部模式最佳成绩与最近训练历史</span>
+                </div>
+                <button class="btn btn-danger-ghost btn-sm" type="button" id="clear-data">清除记录</button>
+              </div>
+              <div class="data-row">
+                <div class="setting-label">
+                  <label>恢复默认设置</label>
+                  <span>灵敏度、准星、音效全部重置，不影响训练记录</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" type="button" id="reset-settings">恢复默认</button>
+              </div>
+              <div class="data-note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-target"/></svg>
+                <p>MEMEAIM 3D-DeepSeek V41 是本地单文件应用。清除浏览器站点数据也会一并清空记录。</p>
+              </div>
+            </section>
+
+            <!-- 整活 -->
+            <section class="settings-pane meme-pane" data-pane="meme">
+              <div class="pane-title">
+                <h3>节目效果 <span class="meme-badge">MEME FX</span></h3>
+                <p>每一枪都有节目效果。梗音效、飞行绿幕梗、表情包和全屏特效，全部本地运行。</p>
+              </div>
+
+              <div class="meme-intensity">
+                <div class="setting-label-row">
+                  <label>整活强度</label>
+                  <span class="mono">INTENSITY</span>
+                </div>
+                <div class="segmented meme-seg" id="meme-intensity-row">
+                  <button class="seg-btn" type="button" data-meme-intensity="chill"><b>克制</b><small>偶尔来一下</small></button>
+                  <button class="seg-btn active" type="button" data-meme-intensity="standard"><b>标准</b><small>命中就有反应</small></button>
+                  <button class="seg-btn" type="button" data-meme-intensity="chaos"><b>全家桶</b><small>特效拉满</small></button>
+                </div>
+              </div>
+
+              <div class="toggle-row meme-master-toggle">
+                <div class="setting-label">
+                  <label for="meme-enabled">总开关</label>
+                  <span>关闭后不播放梗音效、也不显示任何梗特效</span>
+                </div>
+                <label class="switch">
+                  <input id="meme-enabled" type="checkbox" checked>
+                  <span class="switch-track"><i></i></span>
+                </label>
+              </div>
+
+              <div class="meme-toggle-grid">
+                <div class="toggle-row">
+                  <div class="setting-label"><label for="meme-sounds-enabled">梗音效</label><span>命中 / 打空随机播放</span></div>
+                  <label class="switch"><input id="meme-sounds-enabled" type="checkbox" checked><span class="switch-track"><i></i></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="setting-label"><label for="meme-floating-enabled">飞行绿幕梗</label><span>随机位置跳出短片</span></div>
+                  <label class="switch"><input id="meme-floating-enabled" type="checkbox" checked><span class="switch-track"><i></i></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="setting-label"><label for="meme-fullscreen-enabled">全屏特效</label><span>视频 + 程序化大场面</span></div>
+                  <label class="switch"><input id="meme-fullscreen-enabled" type="checkbox" checked><span class="switch-track"><i></i></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="setting-label"><label for="meme-emoji-enabled">表情包弹幕</label><span>命中位置飞出 Twemoji</span></div>
+                  <label class="switch"><input id="meme-emoji-enabled" type="checkbox" checked><span class="switch-track"><i></i></span></label>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-label">
+                  <label for="meme-volume">节目效果音量</label>
+                  <span>与全局音效音量叠加</span>
+                </div>
+                <div class="range-control">
+                  <input id="meme-volume" type="range" min="0" max="1" step="0.01" value="0.8">
+                  <output id="meme-volume-value">80%</output>
+                </div>
+              </div>
+              <p class="setting-hint meme-audio-hint" id="meme-audio-hint"></p>
+
+              <div class="meme-preview-panel">
+                <div class="setting-label-row">
+                  <label>即时试玩</label>
+                  <span class="mono">PREVIEW</span>
+                </div>
+                <div class="meme-preview-actions">
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="hit">命中音效</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="miss">打空音效</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="floating">随机绿幕梗</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="screen">随机全屏</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="dragon">神龙爆燃</button>
+                  <button class="btn btn-outline btn-sm" type="button" data-meme-preview="emoji">表情包弹幕</button>
+                </div>
+              </div>
+
+              <div class="meme-pools">
+                <details class="meme-pool" open>
+                  <summary><span>命中音效池</span><b id="meme-hit-count">--</b></summary>
+                  <div class="meme-sound-list" id="meme-hit-list"></div>
+                </details>
+                <details class="meme-pool">
+                  <summary><span>打空音效池</span><b id="meme-miss-count">--</b></summary>
+                  <div class="meme-sound-list" id="meme-miss-list"></div>
+                </details>
+                <details class="meme-pool">
+                  <summary><span>全屏特效池</span><b id="meme-screen-count">--</b></summary>
+                  <div class="meme-chip-list" id="meme-screen-list"></div>
+                </details>
+                <details class="meme-pool">
+                  <summary><span>飞行绿幕梗</span><b id="meme-floating-count">--</b></summary>
+                  <div class="meme-chip-list" id="meme-floating-list"></div>
+                </details>
+              </div>
+
+              <p class="setting-hint meme-credit">
+                全部素材随页面本地加载，不联网。梗音效 / 绿幕梗视频来自
+                <a href="https://github.com/Passerbyask/-MemeAim" target="_blank" rel="noopener noreferrer">Passerbyask / MemeAim</a>；
+                额外素材为 Mixkit、Wikimedia Commons 与 Twemoji，详见来源说明。
+              </p>
+              <details class="meme-license">
+                <summary>素材来源与许可证</summary>
+                <div class="meme-license-body">
+                  <p><b>Passerbyask / MemeAim</b>：原项目命中和打空音效、18 段绿幕梗视频。素材权利归原作者/上游站点，未单独授权；本项目仅作本地粉丝作品使用。</p>
+                  <p><b>Mixkit</b>：额外 26 个音效与 3 段全屏视频，按 <a href="https://mixkit.co/license/" target="_blank" rel="noopener noreferrer">Mixkit License</a> 使用。</p>
+                  <p><b>Wikimedia Commons · CC BY 3.0</b>：绿幕爆炸，作者 the chosen one。</p>
+                  <p><b>Wikimedia Commons · CC BY 4.0</b>：闪电劈落，作者 PantheraLeo1359531。</p>
+                  <p><b>Twemoji</b>：44 个表情图形，作者 Twitter, Inc. and other contributors，<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>。</p>
+                  <p>完整文件名、作者、来源页与许可证见交付包 <code>ASSET-CREDITS.md</code>。MEMEAIM 3D-DeepSeek V41 是非官方粉丝作品，与 Aim Lab 无关联。</p>
+                </div>
+              </details>
+              <button class="btn btn-ghost btn-sm" type="button" id="reset-meme">恢复默认节目效果</button>
+            </section>
+          </div>
+        </div>
+
+        <footer class="modal-foot">
+          <span>设置会自动保存在当前浏览器。</span>
+          <button class="btn btn-primary" type="button" id="settings-done">完成</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════ 确认框 ══════════════════════════ -->
+    <div class="modal hidden" id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div class="modal-backdrop" data-confirm-cancel></div>
+      <div class="modal-panel confirm-panel">
+        <div class="eyebrow"><span></span>CONFIRM ACTION</div>
+        <h3 id="confirm-title">确定要执行吗？</h3>
+        <p id="confirm-text">此操作无法撤销。</p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" type="button" id="confirm-cancel">取消</button>
+          <button class="btn btn-danger" type="button" id="confirm-ok">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+  </div>
+
+  <script src="js/store.js" data-build="inline"></script>
+  <script src="js/crosshair.js" data-build="inline"></script>
+  <script data-build="assets"></script>
+  <script src="js/meme-extra.js" data-build="inline"></script>
+  <script src="js/meme.js" data-build="inline"></script>
+  <script src="js/game.js" data-build="inline"></script>
+  <script src="js/ui.js" data-build="inline"></script>
+  <script src="js/main.js" data-build="inline"></script>
+</body>
+</html>

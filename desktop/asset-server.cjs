@@ -1,7 +1,13 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const {createHash}=require('node:crypto');
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.mp4':'video/mp4','.mp3':'audio/mpeg','.wav':'audio/wav','.ogg':'audio/ogg','.txt':'text/plain','.svg':'image/svg+xml'};
-const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'";
+function contentPolicy(data){
+  // HTML parsers normalize line endings before checking inline script hashes.
+  const html=data.toString('utf8').replace(/\r\n?/g,'\n');
+  const hashes=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match=>"'sha256-"+createHash('sha256').update(match[1]).digest('base64')+"'");
+  return "default-src 'self'; script-src 'self' "+hashes.join(' ')+"; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'";
+}
 
 function assetPath(root, address) {
   const url = new URL(address);
@@ -21,7 +27,7 @@ function createAssetHandler(root) {
     try { file = assetPath(root, request.url); } catch { return new Response(null, {status:403}); }
     try {
       const data = await fs.readFile(file);
-      const headers = {'Content-Type':types[path.extname(file)],'Content-Security-Policy':csp,'X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};
+      const headers = {'Content-Type':types[path.extname(file)],'Content-Security-Policy':contentPolicy(path.extname(file)==='.html'?data:Buffer.alloc(0)),'X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};
       const range = request.headers.get('range');
       let start = 0, end = data.length - 1, status = 200;
       if (range) {
@@ -36,4 +42,4 @@ function createAssetHandler(root) {
     } catch { return new Response(null, {status:404}); }
   };
 }
-module.exports = {assetPath,createAssetHandler};
+module.exports = {assetPath,createAssetHandler,contentPolicy};

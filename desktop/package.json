@@ -1,14 +1,14 @@
 {
-  "name": "memeaim-desktop",
-  "version": "1.2.0",
+  "name": "memeaim-dpsk-desktop",
+  "version": "1.0.0",
   "private": true,
-  "description": "MemeAim 3D offline aim trainer with meme reactions",
+  "description": "MEMEAIM 3D-DeepSeek offline desktop edition",
   "author": "MemeAim contributors",
   "main": "main.cjs",
   "scripts": {
-    "build:web": "npm --prefix ../web run build",
+    "build:web": "node ../dpsk/build.mjs",
     "start": "npm run build:web && electron .",
-    "test": "node --test --test-isolation=none asset-server.test.cjs dsu.test.cjs",
+    "test": "node --test --test-isolation=none asset-server.test.cjs",
     "pack": "npm run build:web && electron-builder --win --x64 --dir",
     "dist": "npm run build:web && electron-builder --win --x64 --publish never",
     "smoke": "node run-smoke.cjs"
@@ -18,22 +18,20 @@
     "electron-builder": "26.15.3"
   },
   "build": {
-    "appId": "io.github.passerbyask.memeaim",
-    "productName": "MemeAim 3D",
+    "appId": "io.github.passerbyask.memeaim.dpsk",
+    "productName": "MemeAim 3D-DeepSeek V41",
     "directories": {
       "output": "release"
     },
     "files": [
       "main.cjs",
       "asset-server.cjs",
-      "smoke.cjs",
-      "icon.ico",
-      "dsu.cjs",
-      "preload.cjs"
+      "smoke-dpsk.cjs",
+      "icon.ico"
     ],
     "extraResources": [
       {
-        "from": "../web/dist",
+        "from": "../dpsk/dist",
         "to": "web",
         "filter": [
           "**/*"
@@ -58,13 +56,13 @@
       ]
     },
     "nsis": {
-      "artifactName": "MemeAim-3D-${version}-Windows-x64-Setup.exe",
+      "artifactName": "MemeAim-3D-DeepSeek-V41-${version}-Windows-x64-Setup.exe",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "deleteAppDataOnUninstall": false
     },
-    "artifactName": "MemeAim-3D-${version}-Windows-${arch}-Portable.${ext}"
+    "artifactName": "MemeAim-3D-DeepSeek-V41-${version}-Windows-${arch}-Portable.${ext}"
   }
 }

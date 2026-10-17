@@ -1,3 +1,15 @@
+# MemeAim 3D-DeepSeek V41
+
+**当前分支：`dpsk`；独立正式版本 v1.0.0。** 六模式游戏来自导入的 DeepSeek V41 网页项目。main 继续维护原有 Three.js 版本；两版名称、安装身份、存档和发布标签分开。
+
+Releases 下载带 **DeepSeek-V41** 的安装版或免安装 ZIP。免安装包完整解压后运行 `MemeAim 3D-DeepSeek V41.exe`，无需 Python / Node.js，支持离线运行。此版以鼠标/触屏为主，不继承 main 的手柄/陀螺仪功能。
+
+代码、使用、构建和独立发布说明见 **[dpsk/README.md](dpsk/README.md)**；素材来源见 **[dpsk/ASSET-CREDITS.md](dpsk/ASSET-CREDITS.md)**。当前桌面构建入口是 `desktop/`，游戏源文件在 `dpsk/src/`。
+
+---
+
+以下为 main 版与 Python 旧版的原有说明，保留作参考；不代表本分支当前打包内容。
+
 ## 🖥️ Windows 3D 软件版
 
 现有 3D 版本支持打包为独立 Windows 软件，提供 **免安装版（Portable.zip）** 和 **安装版（Setup.exe）**。两者均自带运行环境、音效及视频，安装或解压后直接运行，可离线游玩，不需要安装 Python 或 Node.js。
